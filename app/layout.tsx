@@ -16,7 +16,7 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   title: "Pesty Marketing - Survey",
-  description: "Share your feedback with Pesty Marketing",
+  description: "Share your feedback with Pesty Marketing.",
 };
 
 export default function RootLayout({
