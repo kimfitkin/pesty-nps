@@ -17,6 +17,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Derive NPS Type from score
+    const npsType =
+      score >= 9 ? "Promoter" : score >= 7 ? "Passive" : "Detractor";
+
+    // Derive Comment Sentiment from score
+    const commentSentiment =
+      score >= 9 ? "Positive" : score >= 7 ? "Neutral" : "Negative";
+
     const response = await fetch(
       `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}`,
       {
@@ -32,6 +40,8 @@ export async function POST(request: NextRequest) {
                 "Customer Name": client,
                 "NPS Score": score,
                 "Customer Comment/Feedback": feedback,
+                "NPS Type": npsType,
+                "Comment Sentiment": commentSentiment,
               },
             },
           ],
