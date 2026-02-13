@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { google } from "googleapis";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,32 +17,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(
-          /\\n/g,
-          "\n"
-        ),
-      },
-      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-    });
+    const response = await fetch(
+      `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.AIRTABLE_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          records: [
+            {
+              fields: {
+                "Customer Name": client,
+                "NPS Score": score,
+                "Customer Comment/Feedback": feedback,
+              },
+            },
+          ],
+        }),
+      }
+    );
 
-    const sheets = google.sheets({ version: "v4", auth });
-    const timestamp = new Date().toISOString();
-
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: process.env.GOOGLE_SHEETS_SHEET_ID,
-      range: "Sheet1!A:D",
-      valueInputOption: "USER_ENTERED",
-      requestBody: {
-        values: [[timestamp, client, score, feedback]],
-      },
-    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Airtable error:", errorData);
+      return NextResponse.json(
+        { error: "Submission failed" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to submit to Google Sheets:", error);
+    console.error("Failed to submit to Airtable:", error);
     return NextResponse.json(
       { error: "Submission failed" },
       { status: 500 }
