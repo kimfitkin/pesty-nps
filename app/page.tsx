@@ -1,44 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
-function getScoreColor(score: number, isSelected: boolean) {
-  if (score <= 6) {
-    return isSelected
-      ? "bg-rose-500 text-white border-rose-500"
-      : "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100";
+function getScoreStyle(isSelected: boolean) {
+  if (isSelected) {
+    return {
+      backgroundColor: "#D90429",
+      borderColor: "#D90429",
+      color: "#ffffff",
+    };
   }
-  if (score <= 8) {
-    return isSelected
-      ? "bg-amber-500 text-white border-amber-500"
-      : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100";
-  }
-  return isSelected
-    ? "bg-emerald-500 text-white border-emerald-500"
-    : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100";
+  return {
+    backgroundColor: "#F1F7FB",
+    borderColor: "#d1dce3",
+    color: "#002330",
+  };
 }
 
-export default function Home() {
+function SurveyForm() {
+  const searchParams = useSearchParams();
+  const client = searchParams.get("client") || "unknown";
+
   const [score, setScore] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   async function handleSubmit() {
+    if (score === null) return;
+
     setIsSubmitting(true);
-    // Simulate network request
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    try {
+      const response = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ client, score, feedback }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Submission failed");
+      }
+
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   if (isSubmitted) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4">
-        <div className="w-full max-w-lg rounded-3xl bg-white p-10 text-center shadow-sm">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+        <div className="w-full max-w-2xl rounded-3xl bg-white p-12 text-center shadow-sm">
+          <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
             <svg
-              className="h-8 w-8 text-emerald-600"
+              className="h-10 w-10 text-emerald-600"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={2.5}
@@ -52,12 +71,12 @@ export default function Home() {
             </svg>
           </div>
           <h2
-            className="mb-3 text-2xl font-bold"
+            className="mb-4 text-3xl font-bold"
             style={{ color: "#002330", fontFamily: "var(--font-epilogue)" }}
           >
             Thank you!
           </h2>
-          <p className="text-gray-600">
+          <p className="text-lg text-gray-600">
             Your feedback helps us improve. We appreciate you taking the time to
             share your thoughts.
           </p>
@@ -68,15 +87,15 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
-      <div className="w-full max-w-lg rounded-3xl bg-white p-8 shadow-sm sm:p-10">
+      <div className="w-full max-w-2xl rounded-3xl bg-white p-8 shadow-sm sm:p-12">
         {/* Progress bar */}
-        <div className="mb-8 flex gap-2">
+        <div className="mb-10 flex gap-2">
           <div
-            className="h-1.5 flex-1 rounded-full"
+            className="h-2 flex-1 rounded-full"
             style={{ backgroundColor: "#D90429" }}
           />
           <div
-            className="h-1.5 flex-1 rounded-full transition-colors duration-500"
+            className="h-2 flex-1 rounded-full transition-colors duration-500"
             style={{
               backgroundColor: score !== null ? "#D90429" : "#e5e7eb",
             }}
@@ -85,32 +104,46 @@ export default function Home() {
 
         {/* Question 1: NPS Score */}
         <h1
-          className="mb-2 text-xl font-bold leading-tight sm:text-2xl"
+          className="mb-3 text-2xl font-bold leading-tight sm:text-3xl"
           style={{ color: "#002330", fontFamily: "var(--font-epilogue)" }}
         >
           How likely are you to recommend Pesty Marketing to another pest
           control company?
         </h1>
-        <p className="mb-6 text-sm text-gray-500">
+        <p className="mb-8 text-base text-gray-500">
           Select a score from 0 (not likely) to 10 (extremely likely)
         </p>
 
-        {/* Score buttons */}
-        <div className="mb-2 grid grid-cols-11 gap-1.5 sm:gap-2">
-          {Array.from({ length: 11 }, (_, i) => (
+        {/* Score buttons - Row 1: 0-5 */}
+        <div className="mb-3 flex justify-center gap-3">
+          {Array.from({ length: 6 }, (_, i) => (
             <button
               key={i}
               onClick={() => setScore(i)}
-              className={`flex aspect-square items-center justify-center rounded-xl border-2 text-sm font-semibold transition-all duration-200 cursor-pointer sm:text-base ${getScoreColor(i, score === i)} ${score === i ? "scale-110 shadow-md" : ""}`}
-              style={{ minHeight: "44px" }}
+              className={`flex h-14 w-14 items-center justify-center rounded-full border-2 text-base font-semibold transition-all duration-200 cursor-pointer sm:h-16 sm:w-16 sm:text-lg ${score === i ? "scale-110 shadow-md" : "hover:opacity-80"}`}
+              style={getScoreStyle(score === i)}
             >
               {i}
             </button>
           ))}
         </div>
 
+        {/* Score buttons - Row 2: 6-10 (offset to sit between row above) */}
+        <div className="mb-3 flex justify-center gap-3">
+          {Array.from({ length: 5 }, (_, i) => (
+            <button
+              key={i + 6}
+              onClick={() => setScore(i + 6)}
+              className={`flex h-14 w-14 items-center justify-center rounded-full border-2 text-base font-semibold transition-all duration-200 cursor-pointer sm:h-16 sm:w-16 sm:text-lg ${score === i + 6 ? "scale-110 shadow-md" : "hover:opacity-80"}`}
+              style={getScoreStyle(score === i + 6)}
+            >
+              {i + 6}
+            </button>
+          ))}
+        </div>
+
         {/* Score labels */}
-        <div className="mb-8 flex justify-between text-xs text-gray-400">
+        <div className="mb-10 flex justify-between text-sm text-gray-400">
           <span>Not likely</span>
           <span>Extremely likely</span>
         </div>
@@ -124,7 +157,7 @@ export default function Home() {
           }`}
         >
           <label
-            className="mb-2 block text-lg font-bold"
+            className="mb-3 block text-xl font-bold"
             style={{ color: "#002330", fontFamily: "var(--font-epilogue)" }}
           >
             What&apos;s one thing we can do better?
@@ -136,15 +169,15 @@ export default function Home() {
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
             placeholder="Share your thoughts..."
-            rows={3}
-            className="mb-6 w-full resize-none rounded-xl border border-gray-200 p-4 text-sm transition-colors focus:border-gray-400 focus:outline-none"
+            rows={4}
+            className="mb-8 w-full resize-none rounded-xl border border-gray-200 p-4 text-base transition-colors focus:border-gray-400 focus:outline-none"
           />
 
           {/* Submit button */}
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-base font-semibold text-white transition-opacity cursor-pointer disabled:opacity-70"
+            className="flex w-full items-center justify-center gap-2 rounded-full py-4 text-lg font-semibold text-white transition-opacity cursor-pointer disabled:opacity-70"
             style={{ backgroundColor: "#D90429" }}
           >
             {isSubmitting ? (
@@ -177,5 +210,19 @@ export default function Home() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
+      <SurveyForm />
+    </Suspense>
   );
 }
