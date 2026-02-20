@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import { COOKIE_NAME } from "./constants";
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -13,11 +12,14 @@ function getSecret(): string {
  * Verify a plain-text password against the env var.
  */
 export function verifyPassword(input: string): boolean {
-  const expected = process.env.DASHBOARD_PASSWORD;
+  const expected = process.env.DASHBOARD_PASSWORD?.trim();
   if (!expected) return false;
-  // Constant-time comparison
-  if (input.length !== expected.length) return false;
-  return crypto.timingSafeEqual(Buffer.from(input), Buffer.from(expected));
+  const inputTrimmed = input.trim();
+  if (inputTrimmed.length !== expected.length) return false;
+  return crypto.timingSafeEqual(
+    Buffer.from(inputTrimmed, "utf-8"),
+    Buffer.from(expected, "utf-8")
+  );
 }
 
 /**
