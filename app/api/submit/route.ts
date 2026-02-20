@@ -1,32 +1,107 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const VALID_MILESTONES = [
+  "Onboarding",
+  "Website Launch",
+  "Monthly Call",
+  "First 90 Days",
+] as const;
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { client = "unknown", score, feedback = "" } = body;
+    const {
+      client = "unknown",
+      surveyType,
+      milestone,
+      npsScore,
+      csatScore,
+      followUpScore,
+      feedback = "",
+    } = body;
 
-    if (
-      typeof score !== "number" ||
-      score < 0 ||
-      score > 10 ||
-      !Number.isInteger(score)
-    ) {
+    // Validate survey type
+    if (surveyType !== "nps" && surveyType !== "csat") {
       return NextResponse.json(
-        { error: "Score must be an integer 0-10" },
+        { error: "surveyType must be 'nps' or 'csat'" },
         { status: 400 }
       );
     }
 
-    // Derive NPS Type from score
-    const npsType =
-      score >= 9 ? "Promoter" : score >= 7 ? "Passive" : "Detractor";
+    // Build Airtable fields based on survey type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fields: Record<string, any> = {
+      "Client Name": client,
+      "Survey Type": surveyType === "nps" ? "NPS" : "CSAT",
+      "Open Feedback": feedback,
+      "Submission Timestamp": new Date().toISOString().split("T")[0],
+    };
 
-    // Derive Comment Sentiment from score
-    const commentSentiment =
-      score >= 9 ? "Positive" : score >= 7 ? "Neutral" : "Negative";
+    if (surveyType === "nps") {
+      // Validate NPS score
+      if (
+        typeof npsScore !== "number" ||
+        npsScore < 0 ||
+        npsScore > 10 ||
+        !Number.isInteger(npsScore)
+      ) {
+        return NextResponse.json(
+          { error: "npsScore must be an integer 0-10" },
+          { status: 400 }
+        );
+      }
 
+      fields["NPS Score"] = npsScore;
+    }
+
+    if (surveyType === "csat") {
+      // Validate milestone
+      if (!milestone || !VALID_MILESTONES.includes(milestone)) {
+        return NextResponse.json(
+          {
+            error:
+              "milestone is required for CSAT and must be one of: Onboarding, Website Launch, Monthly Call, First 90 Days",
+          },
+          { status: 400 }
+        );
+      }
+
+      // Validate CSAT score
+      if (
+        typeof csatScore !== "number" ||
+        csatScore < 1 ||
+        csatScore > 5 ||
+        !Number.isInteger(csatScore)
+      ) {
+        return NextResponse.json(
+          { error: "csatScore must be an integer 1-5" },
+          { status: 400 }
+        );
+      }
+
+      fields["Milestone"] = milestone;
+      fields["CSAT Score"] = csatScore;
+
+      // Optional follow-up score
+      if (followUpScore !== undefined && followUpScore !== null) {
+        if (
+          typeof followUpScore !== "number" ||
+          followUpScore < 1 ||
+          followUpScore > 5 ||
+          !Number.isInteger(followUpScore)
+        ) {
+          return NextResponse.json(
+            { error: "followUpScore must be an integer 1-5" },
+            { status: 400 }
+          );
+        }
+        fields["Follow-Up Score"] = followUpScore;
+      }
+    }
+
+    // Submit to Airtable
     const response = await fetch(
-      `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}`,
+      `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SURVEYS_TABLE_ID}`,
       {
         method: "POST",
         headers: {
@@ -34,24 +109,14 @@ export async function POST(request: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          records: [
-            {
-              fields: {
-                "Customer Name": client,
-                "NPS Score": score,
-                "Customer Comment/Feedback": feedback,
-                "NPS Type": npsType,
-                "Comment Sentiment": commentSentiment,
-              },
-            },
-          ],
+          records: [{ fields }],
         }),
       }
     );
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Airtable error:", errorData);
+      const errorText = await response.text();
+      console.error("Airtable error:", response.status, errorText);
       return NextResponse.json(
         { error: "Submission failed" },
         { status: 500 }

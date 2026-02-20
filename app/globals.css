@@ -19,3 +19,8 @@ body {
   color: var(--foreground);
   font-family: var(--font-body), Arial, Helvetica, sans-serif;
 }
+
+/* Dashboard table sort headers */
+.sort-header:hover {
+  color: #002330;
+}
