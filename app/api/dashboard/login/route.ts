@@ -17,13 +17,15 @@ export async function POST(request: NextRequest) {
     }
 
     if (!verifyPassword(password)) {
-      console.error("Login failed: password mismatch", {
-        inputLength: password.length,
-        envSet: !!process.env.DASHBOARD_PASSWORD,
-        envLength: process.env.DASHBOARD_PASSWORD?.length,
-      });
       return NextResponse.json(
-        { error: "Invalid password" },
+        {
+          error: "Invalid password",
+          debug: {
+            envSet: !!process.env.DASHBOARD_PASSWORD,
+            envLength: process.env.DASHBOARD_PASSWORD?.length,
+            inputLength: password.trim().length,
+          },
+        },
         { status: 401 }
       );
     }
