@@ -1,12 +1,144 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type {
   DashboardData,
   DashboardSummary,
   SurveyRecord,
   AlertRecord,
 } from "@/app/lib/types";
+
+// ─── Time frame helpers ─────────────────────────────────────────
+
+type TimeFrame =
+  | "this_month"
+  | "last_month"
+  | "last_quarter"
+  | "last_year"
+  | "custom";
+
+const TIME_FRAME_LABELS: Record<TimeFrame, string> = {
+  this_month: "This Month",
+  last_month: "Last Month",
+  last_quarter: "Last Quarter",
+  last_year: "Last Year",
+  custom: "Custom Range",
+};
+
+function getDateRange(timeFrame: TimeFrame): { start: string; end: string } {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth(); // 0-indexed
+
+  switch (timeFrame) {
+    case "this_month": {
+      const start = new Date(y, m, 1);
+      const end = new Date(y, m + 1, 0); // last day of current month
+      return {
+        start: toDateStr(start),
+        end: toDateStr(end),
+      };
+    }
+    case "last_month": {
+      const start = new Date(y, m - 1, 1);
+      const end = new Date(y, m, 0);
+      return {
+        start: toDateStr(start),
+        end: toDateStr(end),
+      };
+    }
+    case "last_quarter": {
+      // Previous 3 full calendar months
+      const start = new Date(y, m - 3, 1);
+      const end = new Date(y, m, 0);
+      return {
+        start: toDateStr(start),
+        end: toDateStr(end),
+      };
+    }
+    case "last_year": {
+      const start = new Date(y - 1, 0, 1);
+      const end = new Date(y - 1, 11, 31);
+      return {
+        start: toDateStr(start),
+        end: toDateStr(end),
+      };
+    }
+    default:
+      return { start: "", end: "" };
+  }
+}
+
+function toDateStr(d: Date): string {
+  return d.toISOString().split("T")[0];
+}
+
+function filterByDateRange(
+  records: SurveyRecord[],
+  start: string,
+  end: string
+): SurveyRecord[] {
+  if (!start && !end) return records;
+  return records.filter((r) => {
+    if (!r.submissionDate) return false;
+    if (start && r.submissionDate < start) return false;
+    if (end && r.submissionDate > end) return false;
+    return true;
+  });
+}
+
+// ─── Time Frame Picker ──────────────────────────────────────────
+
+function TimeFramePicker({
+  timeFrame,
+  onTimeFrameChange,
+  customStart,
+  customEnd,
+  onCustomStartChange,
+  onCustomEndChange,
+}: {
+  timeFrame: TimeFrame;
+  onTimeFrameChange: (tf: TimeFrame) => void;
+  customStart: string;
+  customEnd: string;
+  onCustomStartChange: (v: string) => void;
+  onCustomEndChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <select
+        value={timeFrame}
+        onChange={(e) => onTimeFrameChange(e.target.value as TimeFrame)}
+        className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium shadow-sm focus:border-gray-400 focus:outline-none cursor-pointer"
+        style={{ color: "#002330" }}
+      >
+        {Object.entries(TIME_FRAME_LABELS).map(([key, label]) => (
+          <option key={key} value={key}>
+            {label}
+          </option>
+        ))}
+      </select>
+
+      {timeFrame === "custom" && (
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={customStart}
+            onChange={(e) => onCustomStartChange(e.target.value)}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
+          />
+          <span className="text-sm text-gray-400">to</span>
+          <input
+            type="date"
+            value={customEnd}
+            onChange={(e) => onCustomEndChange(e.target.value)}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── Score display helpers ──────────────────────────────────────
 
@@ -323,7 +455,7 @@ function ResponsesTable({ records }: { records: SurveyRecord[] }) {
                   colSpan={7}
                   className="px-4 py-8 text-center text-sm text-gray-400"
                 >
-                  No responses yet
+                  No responses in this time period
                 </td>
               </tr>
             )}
@@ -432,12 +564,51 @@ function AlertsSection({ alerts }: { alerts: AlertRecord[] }) {
   );
 }
 
+// ─── Recompute summary from filtered records ────────────────────
+
+function computeFilteredSummary(records: SurveyRecord[]): DashboardSummary {
+  const npsRecords = records.filter(
+    (r) => r.surveyType === "NPS" && r.npsScore !== null
+  );
+  const csatRecords = records.filter(
+    (r) => r.surveyType === "CSAT" && r.csatScore !== null
+  );
+
+  let currentNps = 0;
+  if (npsRecords.length > 0) {
+    const promoters = npsRecords.filter((r) => r.npsScore! >= 9).length;
+    const detractors = npsRecords.filter((r) => r.npsScore! <= 6).length;
+    currentNps = Math.round(
+      ((promoters - detractors) / npsRecords.length) * 100
+    );
+  }
+
+  let averageCsat = 0;
+  if (csatRecords.length > 0) {
+    const total = csatRecords.reduce((sum, r) => sum + r.csatScore!, 0);
+    averageCsat = parseFloat((total / csatRecords.length).toFixed(1));
+  }
+
+  return {
+    currentNps,
+    totalNpsResponses: npsRecords.length,
+    averageCsat,
+    totalCsatResponses: csatRecords.length,
+    totalResponses: records.length,
+  };
+}
+
 // ─── Main Dashboard Page ────────────────────────────────────────
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Time frame state
+  const [timeFrame, setTimeFrame] = useState<TimeFrame>("this_month");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
 
   useEffect(() => {
     async function fetchData() {
@@ -460,6 +631,36 @@ export default function DashboardPage() {
 
     fetchData();
   }, []);
+
+  // Compute filtered data based on time frame
+  const filteredData = useMemo(() => {
+    if (!data) return null;
+
+    const { start, end } =
+      timeFrame === "custom"
+        ? { start: customStart, end: customEnd }
+        : getDateRange(timeFrame);
+
+    const filteredRecords = filterByDateRange(
+      data.recentResponses,
+      start,
+      end
+    );
+
+    // Also filter alerts by selected time frame (not just last 30 days)
+    const filteredAlerts = data.alerts.filter((a) => {
+      if (!a.submissionDate) return false;
+      if (start && a.submissionDate < start) return false;
+      if (end && a.submissionDate > end) return false;
+      return true;
+    });
+
+    return {
+      summary: computeFilteredSummary(filteredRecords),
+      recentResponses: filteredRecords,
+      alerts: filteredAlerts,
+    };
+  }, [data, timeFrame, customStart, customEnd]);
 
   if (isLoading) {
     return (
@@ -506,13 +707,31 @@ export default function DashboardPage() {
     );
   }
 
-  if (!data) return null;
+  if (!filteredData) return null;
 
   return (
     <>
-      <SummaryCards summary={data.summary} />
-      <ResponsesTable records={data.recentResponses} />
-      <AlertsSection alerts={data.alerts} />
+      {/* Header row: title + time frame picker */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <h2
+          className="text-lg font-bold"
+          style={{ color: "#002330", fontFamily: "var(--font-epilogue)" }}
+        >
+          Overview
+        </h2>
+        <TimeFramePicker
+          timeFrame={timeFrame}
+          onTimeFrameChange={setTimeFrame}
+          customStart={customStart}
+          customEnd={customEnd}
+          onCustomStartChange={setCustomStart}
+          onCustomEndChange={setCustomEnd}
+        />
+      </div>
+
+      <SummaryCards summary={filteredData.summary} />
+      <ResponsesTable records={filteredData.recentResponses} />
+      <AlertsSection alerts={filteredData.alerts} />
     </>
   );
 }

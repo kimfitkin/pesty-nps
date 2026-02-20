@@ -161,7 +161,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   const records = rawRecords.map(transformRecord);
 
   const summary = computeSummary(records);
-  const recentResponses = records.slice(0, 20); // Already sorted desc
+  const recentResponses = records; // Return all records; client-side filters by time frame
   const alerts = computeAlerts(records);
 
   return { summary, recentResponses, alerts };

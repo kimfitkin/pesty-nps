@@ -18,14 +18,7 @@ export async function POST(request: NextRequest) {
 
     if (!verifyPassword(password)) {
       return NextResponse.json(
-        {
-          error: "Invalid password",
-          debug: {
-            envSet: !!process.env.DASHBOARD_PASSWORD,
-            envLength: process.env.DASHBOARD_PASSWORD?.length,
-            inputLength: password.trim().length,
-          },
-        },
+        { error: "Invalid password" },
         { status: 401 }
       );
     }
