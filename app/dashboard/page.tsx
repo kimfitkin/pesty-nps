@@ -140,6 +140,15 @@ function TimeFramePicker({
   );
 }
 
+// ─── Name formatting ────────────────────────────────────────────
+
+function formatClientName(name: string): string {
+  // Convert URL slugs like "test-client" or "acme_pest" to "Test Client" / "Acme Pest"
+  return name
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 // ─── Score display helpers ──────────────────────────────────────
 
 function getNpsColor(score: number): string {
@@ -396,7 +405,7 @@ function ResponsesTable({ records }: { records: SurveyRecord[] }) {
               return (
                 <tr key={r.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3 text-sm font-medium">
-                    {r.clientName}
+                    {formatClientName(r.clientName)}
                   </td>
                   <td className="px-4 py-3">
                     <span
@@ -516,7 +525,7 @@ function AlertsSection({ alerts }: { alerts: AlertRecord[] }) {
                   className="text-sm font-bold"
                   style={{ color: "#002330" }}
                 >
-                  {alert.clientName}
+                  {formatClientName(alert.clientName)}
                 </span>
                 <span
                   className="inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold"
