@@ -17,7 +17,7 @@ function getScoreStyle(isSelected: boolean) {
   }
   return {
     backgroundColor: "var(--surface)",
-    borderColor: "var(--border)",
+    borderColor: "var(--text-muted)",
     color: "var(--text)",
   };
 }
