@@ -12,21 +12,24 @@ export function middleware(request: NextRequest) {
   const cookie = request.cookies.get(COOKIE_NAME);
   if (!cookie?.value) {
     // No cookie → redirect to login
-    const loginUrl = new URL("/dashboard/login", request.url);
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/dashboard/login";
     return NextResponse.redirect(loginUrl);
   }
 
   // Structural check: cookie must have `payload.signature` format
   const parts = cookie.value.split(".");
   if (parts.length !== 2) {
-    const loginUrl = new URL("/dashboard/login", request.url);
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/dashboard/login";
     return NextResponse.redirect(loginUrl);
   }
 
   // Expiry check (Edge-safe, no crypto needed)
   const expiry = parseInt(parts[0], 10);
   if (isNaN(expiry) || Date.now() > expiry) {
-    const loginUrl = new URL("/dashboard/login", request.url);
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/dashboard/login";
     const response = NextResponse.redirect(loginUrl);
     response.cookies.delete(COOKIE_NAME);
     return response;
