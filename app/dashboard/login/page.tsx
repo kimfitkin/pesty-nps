@@ -22,7 +22,7 @@ export default function DashboardLogin() {
       });
 
       if (response.ok) {
-        router.push("/nps/dashboard");
+        router.push("/dashboard");
         router.refresh();
       } else {
         const data = await response.json();
