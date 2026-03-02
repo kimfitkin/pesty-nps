@@ -5,20 +5,20 @@ import { useSearchParams } from "next/navigation";
 
 // ─── Shared helpers ──────────────────────────────────────────────
 
-const HEADING_STYLE = { color: "#002330", fontFamily: "var(--font-epilogue)" };
+const HEADING_STYLE = { color: "var(--text)", fontFamily: "var(--font-mono)" };
 
 function getScoreStyle(isSelected: boolean) {
   if (isSelected) {
     return {
-      backgroundColor: "#D90429",
-      borderColor: "#D90429",
+      backgroundColor: "var(--accent)",
+      borderColor: "var(--accent)",
       color: "#ffffff",
     };
   }
   return {
-    backgroundColor: "#F1F7FB",
-    borderColor: "#d1dce3",
-    color: "#002330",
+    backgroundColor: "var(--surface)",
+    borderColor: "var(--border)",
+    color: "var(--text)",
   };
 }
 
@@ -35,8 +35,8 @@ function SubmitButton({
     <button
       onClick={onClick}
       disabled={disabled || isSubmitting}
-      className="flex w-full items-center justify-center gap-2 rounded-full py-4 text-lg font-semibold text-white transition-opacity cursor-pointer disabled:opacity-70"
-      style={{ backgroundColor: "#D90429" }}
+      className="flex w-full items-center justify-center gap-2 rounded-md py-4 text-base font-semibold text-white transition-opacity cursor-pointer disabled:opacity-50"
+      style={{ backgroundColor: "var(--accent)" }}
     >
       {isSubmitting ? (
         <>
@@ -67,10 +67,20 @@ function SubmitButton({
 function ThankYou({ message }: { message: string }) {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-2xl rounded-3xl bg-white p-12 text-center shadow-sm">
-        <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
+      <div
+        className="w-full max-w-2xl rounded-lg p-12 text-center"
+        style={{
+          backgroundColor: "var(--card)",
+          border: "1px solid var(--border)",
+        }}
+      >
+        <div
+          className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full"
+          style={{ backgroundColor: "var(--success-dim)" }}
+        >
           <svg
-            className="h-10 w-10 text-emerald-600"
+            className="h-10 w-10"
+            style={{ color: "var(--success)" }}
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={2.5}
@@ -83,10 +93,12 @@ function ThankYou({ message }: { message: string }) {
             />
           </svg>
         </div>
-        <h2 className="mb-4 text-3xl font-bold" style={HEADING_STYLE}>
+        <h2 className="mb-4 text-2xl font-bold" style={HEADING_STYLE}>
           Thank you!
         </h2>
-        <p className="text-lg text-gray-600">{message}</p>
+        <p className="text-base" style={{ color: "var(--text-muted)" }}>
+          {message}
+        </p>
       </div>
     </div>
   );
@@ -98,9 +110,10 @@ function ProgressBar({ steps, currentStep }: { steps: number; currentStep: numbe
       {Array.from({ length: steps }, (_, i) => (
         <div
           key={i}
-          className="h-2 flex-1 rounded-full transition-colors duration-500"
+          className="h-1.5 flex-1 rounded-full transition-colors duration-500"
           style={{
-            backgroundColor: i < currentStep ? "#D90429" : "#e5e7eb",
+            backgroundColor:
+              i < currentStep ? "var(--accent)" : "var(--border)",
           }}
         />
       ))}
@@ -114,8 +127,8 @@ function StarIcon({ filled, size = 48 }: { filled: boolean; size?: number }) {
       width={size}
       height={size}
       viewBox="0 0 24 24"
-      fill={filled ? "#D90429" : "none"}
-      stroke={filled ? "#D90429" : "#d1dce3"}
+      fill={filled ? "var(--accent)" : "none"}
+      stroke={filled ? "var(--accent)" : "var(--border)"}
       strokeWidth={1.5}
     >
       <path
@@ -209,17 +222,26 @@ function NPSSurvey({ client }: { client: string }) {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
-      <div className="w-full max-w-2xl rounded-3xl bg-white p-8 shadow-sm sm:p-12">
+      <div
+        className="w-full max-w-2xl rounded-lg p-8 sm:p-12"
+        style={{
+          backgroundColor: "var(--card)",
+          border: "1px solid var(--border)",
+        }}
+      >
         <ProgressBar steps={2} currentStep={score !== null ? 2 : 1} />
 
         <h1
-          className="mb-3 text-2xl font-bold leading-tight sm:text-3xl"
+          className="mb-3 text-xl font-bold leading-tight sm:text-2xl"
           style={HEADING_STYLE}
         >
           How likely are you to recommend Pesty Marketing to another pest
           control company?
         </h1>
-        <p className="mb-8 text-base text-gray-500">
+        <p
+          className="mb-8 text-[14px]"
+          style={{ color: "var(--text-muted)" }}
+        >
           Select a score from 0 (not likely) to 10 (extremely likely)
         </p>
 
@@ -229,8 +251,11 @@ function NPSSurvey({ client }: { client: string }) {
             <button
               key={i}
               onClick={() => setScore(i)}
-              className={`flex h-14 w-14 items-center justify-center rounded-full border-2 text-base font-semibold transition-all duration-200 cursor-pointer sm:h-16 sm:w-16 sm:text-lg ${score === i ? "scale-110 shadow-md" : "hover:opacity-80"}`}
-              style={getScoreStyle(score === i)}
+              className={`flex h-12 w-12 items-center justify-center rounded-md text-[14px] font-semibold transition-all duration-150 cursor-pointer sm:h-14 sm:w-14 sm:text-base ${score === i ? "scale-110" : "hover:opacity-80"}`}
+              style={{
+                ...getScoreStyle(score === i),
+                border: "1px solid",
+              }}
             >
               {i}
             </button>
@@ -243,15 +268,21 @@ function NPSSurvey({ client }: { client: string }) {
             <button
               key={i + 6}
               onClick={() => setScore(i + 6)}
-              className={`flex h-14 w-14 items-center justify-center rounded-full border-2 text-base font-semibold transition-all duration-200 cursor-pointer sm:h-16 sm:w-16 sm:text-lg ${score === i + 6 ? "scale-110 shadow-md" : "hover:opacity-80"}`}
-              style={getScoreStyle(score === i + 6)}
+              className={`flex h-12 w-12 items-center justify-center rounded-md text-[14px] font-semibold transition-all duration-150 cursor-pointer sm:h-14 sm:w-14 sm:text-base ${score === i + 6 ? "scale-110" : "hover:opacity-80"}`}
+              style={{
+                ...getScoreStyle(score === i + 6),
+                border: "1px solid",
+              }}
             >
               {i + 6}
             </button>
           ))}
         </div>
 
-        <div className="mb-10 flex justify-between text-sm text-gray-400">
+        <div
+          className="mb-10 flex justify-between text-[12px]"
+          style={{ color: "var(--text-muted)" }}
+        >
           <span>Not likely</span>
           <span>Extremely likely</span>
         </div>
@@ -262,9 +293,12 @@ function NPSSurvey({ client }: { client: string }) {
             score !== null ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
           }`}
         >
-          <label className="mb-3 block text-xl font-bold" style={HEADING_STYLE}>
+          <label className="mb-3 block text-lg font-bold" style={HEADING_STYLE}>
             What&apos;s one thing we can do better?
-            <span className="ml-2 text-sm font-normal text-gray-400">
+            <span
+              className="ml-2 text-[13px] font-normal"
+              style={{ color: "var(--text-muted)" }}
+            >
               Optional
             </span>
           </label>
@@ -273,7 +307,12 @@ function NPSSurvey({ client }: { client: string }) {
             onChange={(e) => setFeedback(e.target.value)}
             placeholder="Share your thoughts..."
             rows={4}
-            className="mb-8 w-full resize-none rounded-xl border border-gray-200 p-4 text-base transition-colors focus:border-gray-400 focus:outline-none"
+            className="mb-8 w-full resize-none rounded-md p-4 text-[14px] transition-colors focus:outline-none"
+            style={{
+              backgroundColor: "var(--surface)",
+              border: "1px solid var(--border)",
+              color: "var(--text)",
+            }}
           />
           <SubmitButton isSubmitting={isSubmitting} onClick={handleSubmit} />
         </div>
@@ -341,17 +380,26 @@ function CSATSurvey({
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
-      <div className="w-full max-w-2xl rounded-3xl bg-white p-8 shadow-sm sm:p-12">
+      <div
+        className="w-full max-w-2xl rounded-lg p-8 sm:p-12"
+        style={{
+          backgroundColor: "var(--card)",
+          border: "1px solid var(--border)",
+        }}
+      >
         <ProgressBar steps={3} currentStep={currentStep} />
 
         {/* Step 1: CSAT Rating (Stars) */}
         <h1
-          className="mb-3 text-2xl font-bold leading-tight sm:text-3xl"
+          className="mb-3 text-xl font-bold leading-tight sm:text-2xl"
           style={HEADING_STYLE}
         >
           {questions.csatQuestion}
         </h1>
-        <p className="mb-8 text-base text-gray-500">
+        <p
+          className="mb-8 text-[14px]"
+          style={{ color: "var(--text-muted)" }}
+        >
           Select a rating from 1 to 5 stars
         </p>
 
@@ -360,10 +408,10 @@ function CSATSurvey({
             <button
               key={i + 1}
               onClick={() => setCsatScore(i + 1)}
-              className={`cursor-pointer transition-all duration-200 ${
+              className={`cursor-pointer transition-all duration-150 ${
                 csatScore !== null && i + 1 <= csatScore
                   ? "scale-110"
-                  : "hover:scale-105 opacity-60 hover:opacity-80"
+                  : "hover:scale-105 opacity-50 hover:opacity-70"
               }`}
               style={{ minWidth: "48px", minHeight: "48px" }}
             >
@@ -382,12 +430,15 @@ function CSATSurvey({
           }`}
         >
           <h2
-            className="mb-3 text-xl font-bold leading-tight sm:text-2xl"
+            className="mb-3 text-lg font-bold leading-tight sm:text-xl"
             style={HEADING_STYLE}
           >
             {questions.followUpQuestion}
           </h2>
-          <p className="mb-6 text-base text-gray-500">
+          <p
+            className="mb-6 text-[14px]"
+            style={{ color: "var(--text-muted)" }}
+          >
             Rate from 1 (Poor) to 5 (Excellent)
           </p>
 
@@ -396,19 +447,24 @@ function CSATSurvey({
               <button
                 key={i + 1}
                 onClick={() => setFollowUpScore(i + 1)}
-                className={`flex h-14 w-20 flex-col items-center justify-center rounded-xl border-2 text-sm font-semibold transition-all duration-200 cursor-pointer sm:h-16 sm:w-24 sm:text-base ${
+                className={`flex h-14 w-20 flex-col items-center justify-center rounded-md text-[13px] font-semibold transition-all duration-150 cursor-pointer sm:h-16 sm:w-24 sm:text-[14px] ${
                   followUpScore === i + 1
-                    ? "scale-105 shadow-md"
+                    ? "scale-105"
                     : "hover:opacity-80"
                 }`}
-                style={getScoreStyle(followUpScore === i + 1)}
+                style={{
+                  ...getScoreStyle(followUpScore === i + 1),
+                  border: "1px solid",
+                }}
               >
                 <span>{i + 1}</span>
                 <span
-                  className="text-xs font-normal"
+                  className="text-[11px] font-normal"
                   style={{
                     color:
-                      followUpScore === i + 1 ? "#ffffff" : "#9ca3af",
+                      followUpScore === i + 1
+                        ? "#ffffff"
+                        : "var(--text-muted)",
                   }}
                 >
                   {FOLLOW_UP_LABELS[i]}
@@ -426,11 +482,14 @@ function CSATSurvey({
             }`}
           >
             <label
-              className="mb-3 block text-xl font-bold"
+              className="mb-3 block text-lg font-bold"
               style={HEADING_STYLE}
             >
               Anything else we should know?
-              <span className="ml-2 text-sm font-normal text-gray-400">
+              <span
+                className="ml-2 text-[13px] font-normal"
+                style={{ color: "var(--text-muted)" }}
+              >
                 Optional
               </span>
             </label>
@@ -439,7 +498,12 @@ function CSATSurvey({
               onChange={(e) => setFeedback(e.target.value)}
               placeholder="Share your thoughts..."
               rows={4}
-              className="mb-8 w-full resize-none rounded-xl border border-gray-200 p-4 text-base transition-colors focus:border-gray-400 focus:outline-none"
+              className="mb-8 w-full resize-none rounded-md p-4 text-[14px] transition-colors focus:outline-none"
+              style={{
+                backgroundColor: "var(--surface)",
+                border: "1px solid var(--border)",
+                color: "var(--text)",
+              }}
             />
             <SubmitButton isSubmitting={isSubmitting} onClick={handleSubmit} />
           </div>
@@ -454,10 +518,20 @@ function CSATSurvey({
 function SurveyError({ message }: { message: string }) {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-2xl rounded-3xl bg-white p-12 text-center shadow-sm">
-        <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100">
+      <div
+        className="w-full max-w-2xl rounded-lg p-12 text-center"
+        style={{
+          backgroundColor: "var(--card)",
+          border: "1px solid var(--border)",
+        }}
+      >
+        <div
+          className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full"
+          style={{ backgroundColor: "var(--warning-dim)" }}
+        >
           <svg
-            className="h-10 w-10 text-amber-600"
+            className="h-10 w-10"
+            style={{ color: "var(--warning)" }}
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={2.5}
@@ -470,10 +544,12 @@ function SurveyError({ message }: { message: string }) {
             />
           </svg>
         </div>
-        <h2 className="mb-4 text-2xl font-bold" style={HEADING_STYLE}>
+        <h2 className="mb-4 text-xl font-bold" style={HEADING_STYLE}>
           Oops
         </h2>
-        <p className="text-lg text-gray-600">{message}</p>
+        <p className="text-base" style={{ color: "var(--text-muted)" }}>
+          {message}
+        </p>
       </div>
     </div>
   );
@@ -513,7 +589,10 @@ export default function Home() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
+        <div
+          className="flex min-h-screen items-center justify-center"
+          style={{ color: "var(--text-muted)" }}
+        >
           Loading...
         </div>
       }

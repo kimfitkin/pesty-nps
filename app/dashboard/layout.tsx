@@ -17,63 +17,72 @@ export default async function DashboardLayout({
 
   // Authenticated: render dashboard shell
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#F1F7FB" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
       {/* Header */}
       <header
-        className="shadow-sm"
-        style={{ backgroundColor: "#002330" }}
+        className="sticky top-0 z-50"
+        style={{
+          backgroundColor: "var(--surface)",
+          borderBottom: "1px solid var(--border)",
+        }}
       >
-        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1400px] px-6 py-3 sm:px-10">
           <h1
-            className="text-xl font-bold text-white sm:text-2xl"
-            style={{ fontFamily: "var(--font-epilogue)" }}
+            className="text-[15px] font-bold"
+            style={{ fontFamily: "var(--font-mono)", color: "var(--text)" }}
           >
             Pesty Marketing{" "}
-            <span className="font-normal opacity-70">—</span>{" "}
-            <span className="font-normal opacity-90">
-              Client Feedback Dashboard
+            <span style={{ color: "var(--text-muted)" }}>/</span>{" "}
+            <span style={{ color: "var(--text-bright)" }}>
+              Client Feedback
             </span>
           </h1>
         </div>
       </header>
 
       {/* Tab navigation */}
-      <nav className="border-b bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-6">
+      <nav
+        style={{
+          backgroundColor: "var(--surface)",
+          borderBottom: "1px solid var(--border)",
+        }}
+      >
+        <div className="mx-auto max-w-[1400px] px-6 sm:px-10">
+          <div className="flex gap-1">
             <button
-              className="border-b-2 px-1 py-3 text-sm font-semibold transition-colors"
+              className="px-3 py-2.5 text-[13px] font-semibold transition-colors rounded-t-md"
               style={{
-                borderColor: "#D90429",
-                color: "#002330",
+                backgroundColor: "var(--accent-dim)",
+                color: "var(--accent)",
+                borderBottom: "2px solid var(--accent)",
               }}
             >
               Overview
             </button>
-            <span className="flex items-center gap-1 px-1 py-3 text-sm text-gray-400 cursor-not-allowed">
-              NPS
-              <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-gray-400">
-                Soon
+            {["NPS", "CSAT", "Clients"].map((tab) => (
+              <span
+                key={tab}
+                className="flex items-center gap-1.5 px-3 py-2.5 text-[13px] cursor-not-allowed"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {tab}
+                <span
+                  className="rounded px-1.5 py-0.5 text-[10px] font-medium uppercase"
+                  style={{
+                    backgroundColor: "var(--border)",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  Soon
+                </span>
               </span>
-            </span>
-            <span className="flex items-center gap-1 px-1 py-3 text-sm text-gray-400 cursor-not-allowed">
-              CSAT
-              <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-gray-400">
-                Soon
-              </span>
-            </span>
-            <span className="flex items-center gap-1 px-1 py-3 text-sm text-gray-400 cursor-not-allowed">
-              Clients
-              <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-gray-400">
-                Soon
-              </span>
-            </span>
+            ))}
           </div>
         </div>
       </nav>
 
       {/* Page content */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-[1400px] px-6 py-8 sm:px-10">
         {children}
       </main>
     </div>

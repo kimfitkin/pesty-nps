@@ -38,17 +38,24 @@ export default function DashboardLogin() {
   return (
     <div
       className="flex min-h-screen items-center justify-center px-4"
-      style={{ backgroundColor: "#F1F7FB" }}
+      style={{ backgroundColor: "var(--bg)" }}
     >
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm sm:p-10">
+      <div
+        className="w-full max-w-md rounded-lg p-8 sm:p-10"
+        style={{
+          backgroundColor: "var(--card)",
+          border: "1px solid var(--border)",
+        }}
+      >
         {/* Logo / Title */}
         <div className="mb-8 text-center">
           <div
             className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full"
-            style={{ backgroundColor: "#002330" }}
+            style={{ backgroundColor: "var(--accent-dim)" }}
           >
             <svg
-              className="h-7 w-7 text-white"
+              className="h-7 w-7"
+              style={{ color: "var(--accent)" }}
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={2}
@@ -62,15 +69,18 @@ export default function DashboardLogin() {
             </svg>
           </div>
           <h1
-            className="text-2xl font-bold"
+            className="text-xl font-bold"
             style={{
-              color: "#002330",
-              fontFamily: "var(--font-epilogue)",
+              color: "var(--text)",
+              fontFamily: "var(--font-mono)",
             }}
           >
             Dashboard Login
           </h1>
-          <p className="mt-2 text-sm text-gray-500">
+          <p
+            className="mt-2 text-[13px]"
+            style={{ color: "var(--text-muted)" }}
+          >
             Enter your team password to continue
           </p>
         </div>
@@ -79,8 +89,8 @@ export default function DashboardLogin() {
           <div className="mb-4">
             <label
               htmlFor="password"
-              className="mb-1.5 block text-sm font-medium"
-              style={{ color: "#002330" }}
+              className="mb-1.5 block text-[13px] font-medium"
+              style={{ color: "var(--text-bright)" }}
             >
               Password
             </label>
@@ -91,13 +101,24 @@ export default function DashboardLogin() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter dashboard password"
               required
-              className="w-full rounded-lg border border-gray-200 px-4 py-3 text-base transition-colors focus:border-gray-400 focus:outline-none"
+              className="w-full rounded-md px-4 py-3 text-[14px] transition-colors focus:outline-none"
+              style={{
+                backgroundColor: "var(--surface)",
+                border: "1px solid var(--border)",
+                color: "var(--text)",
+              }}
               autoFocus
             />
           </div>
 
           {error && (
-            <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+            <div
+              className="mb-4 rounded-md px-4 py-3 text-[13px]"
+              style={{
+                backgroundColor: "var(--error-dim)",
+                color: "var(--error)",
+              }}
+            >
               {error}
             </div>
           )}
@@ -105,8 +126,8 @@ export default function DashboardLogin() {
           <button
             type="submit"
             disabled={isLoading || !password}
-            className="flex w-full items-center justify-center gap-2 rounded-lg py-3 text-base font-semibold text-white transition-opacity disabled:opacity-70 cursor-pointer"
-            style={{ backgroundColor: "#D90429" }}
+            className="flex w-full items-center justify-center gap-2 rounded-md py-3 text-[14px] font-semibold text-white transition-opacity disabled:opacity-50 cursor-pointer"
+            style={{ backgroundColor: "var(--accent)" }}
           >
             {isLoading ? (
               <>

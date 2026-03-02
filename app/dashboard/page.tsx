@@ -109,8 +109,12 @@ function TimeFramePicker({
       <select
         value={timeFrame}
         onChange={(e) => onTimeFrameChange(e.target.value as TimeFrame)}
-        className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium shadow-sm focus:border-gray-400 focus:outline-none cursor-pointer"
-        style={{ color: "#002330" }}
+        className="rounded-md px-3 py-1.5 text-[13px] font-medium cursor-pointer focus:outline-none"
+        style={{
+          backgroundColor: "var(--card)",
+          border: "1px solid var(--border)",
+          color: "var(--text)",
+        }}
       >
         {Object.entries(TIME_FRAME_LABELS).map(([key, label]) => (
           <option key={key} value={key}>
@@ -125,14 +129,26 @@ function TimeFramePicker({
             type="date"
             value={customStart}
             onChange={(e) => onCustomStartChange(e.target.value)}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
+            className="rounded-md px-3 py-1.5 text-[13px] focus:outline-none"
+            style={{
+              backgroundColor: "var(--card)",
+              border: "1px solid var(--border)",
+              color: "var(--text)",
+            }}
           />
-          <span className="text-sm text-gray-400">to</span>
+          <span className="text-[13px]" style={{ color: "var(--text-muted)" }}>
+            to
+          </span>
           <input
             type="date"
             value={customEnd}
             onChange={(e) => onCustomEndChange(e.target.value)}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
+            className="rounded-md px-3 py-1.5 text-[13px] focus:outline-none"
+            style={{
+              backgroundColor: "var(--card)",
+              border: "1px solid var(--border)",
+              color: "var(--text)",
+            }}
           />
         </div>
       )}
@@ -143,7 +159,6 @@ function TimeFramePicker({
 // ─── Name formatting ────────────────────────────────────────────
 
 function formatClientName(name: string): string {
-  // Convert URL slugs like "test-client" or "acme_pest" to "Test Client" / "Acme Pest"
   return name
     .replace(/[-_]/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
@@ -152,15 +167,15 @@ function formatClientName(name: string): string {
 // ─── Score display helpers ──────────────────────────────────────
 
 function getNpsColor(score: number): string {
-  if (score >= 9) return "#16a34a"; // green
-  if (score >= 7) return "#ca8a04"; // yellow
-  return "#dc2626"; // red
+  if (score >= 9) return "var(--success)";
+  if (score >= 7) return "var(--warning)";
+  return "var(--error)";
 }
 
 function getCsatColor(score: number): string {
-  if (score >= 4) return "#16a34a";
-  if (score === 3) return "#ca8a04";
-  return "#dc2626";
+  if (score >= 4) return "var(--success)";
+  if (score === 3) return "var(--warning)";
+  return "var(--error)";
 }
 
 function getNpsCategory(score: number): string {
@@ -199,16 +214,16 @@ function SummaryCards({ summary }: { summary: DashboardSummary }) {
       suffix: "",
       color:
         summary.currentNps >= 50
-          ? "#16a34a"
+          ? "var(--success)"
           : summary.currentNps >= 0
-          ? "#ca8a04"
-          : "#dc2626",
+          ? "var(--warning)"
+          : "var(--error)",
     },
     {
       label: "NPS Responses",
       value: summary.totalNpsResponses,
       suffix: "",
-      color: "#002330",
+      color: "var(--text)",
     },
     {
       label: "Avg CSAT",
@@ -216,22 +231,22 @@ function SummaryCards({ summary }: { summary: DashboardSummary }) {
       suffix: " / 5",
       color:
         summary.averageCsat >= 4
-          ? "#16a34a"
+          ? "var(--success)"
           : summary.averageCsat >= 3
-          ? "#ca8a04"
-          : "#dc2626",
+          ? "var(--warning)"
+          : "var(--error)",
     },
     {
       label: "CSAT Responses",
       value: summary.totalCsatResponses,
       suffix: "",
-      color: "#002330",
+      color: "var(--text)",
     },
     {
       label: "Total Responses",
       value: summary.totalResponses,
       suffix: "",
-      color: "#002330",
+      color: "var(--text)",
     },
   ];
 
@@ -240,18 +255,28 @@ function SummaryCards({ summary }: { summary: DashboardSummary }) {
       {cards.map((card) => (
         <div
           key={card.label}
-          className="rounded-xl bg-white p-5 shadow-sm"
+          className="rounded-lg p-4"
+          style={{
+            backgroundColor: "var(--card)",
+            border: "1px solid var(--border)",
+          }}
         >
-          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+          <p
+            className="mb-1 text-[11px] font-medium uppercase tracking-wide"
+            style={{ color: "var(--text-muted)" }}
+          >
             {card.label}
           </p>
           <p
             className="text-2xl font-bold sm:text-3xl"
-            style={{ color: card.color, fontFamily: "var(--font-epilogue)" }}
+            style={{ color: card.color, fontFamily: "var(--font-mono)" }}
           >
             {card.value}
             {card.suffix && (
-              <span className="text-base font-normal text-gray-400">
+              <span
+                className="text-base font-normal"
+                style={{ color: "var(--text-muted)" }}
+              >
                 {card.suffix}
               </span>
             )}
@@ -348,13 +373,14 @@ function ResponsesTable({ records }: { records: SurveyRecord[] }) {
   }) {
     return (
       <th
-        className="sort-header cursor-pointer select-none px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500"
+        className="sort-header cursor-pointer select-none px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide"
+        style={{ color: "var(--text-muted)" }}
         onClick={() => handleSort(field)}
       >
         <span className="inline-flex items-center gap-1">
           {children}
           {sortField === field && (
-            <span className="text-gray-400">
+            <span style={{ color: "var(--accent)" }}>
               {sortDir === "asc" ? "↑" : "↓"}
             </span>
           )}
@@ -366,27 +392,38 @@ function ResponsesTable({ records }: { records: SurveyRecord[] }) {
   return (
     <div className="mb-8">
       <h2
-        className="mb-4 text-lg font-bold"
-        style={{ color: "#002330", fontFamily: "var(--font-epilogue)" }}
+        className="mb-4 text-[15px] font-bold"
+        style={{ color: "var(--text)", fontFamily: "var(--font-mono)" }}
       >
         Recent Responses
       </h2>
-      <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
+      <div
+        className="overflow-x-auto rounded-lg"
+        style={{
+          backgroundColor: "var(--card)",
+          border: "1px solid var(--border)",
+        }}
+      >
         <table className="w-full min-w-[700px]">
-          <thead className="border-b">
+          <thead
+            style={{ borderBottom: "1px solid var(--border)" }}
+          >
             <tr>
               <SortHeader field="clientName">Client</SortHeader>
               <SortHeader field="surveyType">Type</SortHeader>
               <SortHeader field="score">Score</SortHeader>
               <SortHeader field="category">Category</SortHeader>
               <SortHeader field="milestone">Milestone</SortHeader>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+              <th
+                className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide"
+                style={{ color: "var(--text-muted)" }}
+              >
                 Feedback
               </th>
               <SortHeader field="submissionDate">Date</SortHeader>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody>
             {sorted.map((r) => {
               const score = getScore(r);
               const scoreColor =
@@ -403,18 +440,35 @@ function ResponsesTable({ records }: { records: SurveyRecord[] }) {
                   : r.feedback;
 
               return (
-                <tr key={r.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 text-sm font-medium">
+                <tr
+                  key={r.id}
+                  className="transition-colors"
+                  style={{ borderBottom: "1px solid var(--border)" }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "var(--surface)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
+                >
+                  <td
+                    className="px-4 py-3 text-[13px] font-medium"
+                    style={{ color: "var(--text)" }}
+                  >
                     {formatClientName(r.clientName)}
                   </td>
                   <td className="px-4 py-3">
                     <span
-                      className="inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                      className="inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
                       style={{
                         backgroundColor:
-                          r.surveyType === "NPS" ? "#eff6ff" : "#f0fdf4",
+                          r.surveyType === "NPS"
+                            ? "var(--accent-dim)"
+                            : "var(--success-dim)",
                         color:
-                          r.surveyType === "NPS" ? "#1d4ed8" : "#15803d",
+                          r.surveyType === "NPS"
+                            ? "var(--accent)"
+                            : "var(--success)",
                       }}
                     >
                       {r.surveyType}
@@ -422,19 +476,31 @@ function ResponsesTable({ records }: { records: SurveyRecord[] }) {
                   </td>
                   <td className="px-4 py-3">
                     <span
-                      className="text-sm font-bold"
-                      style={{ color: scoreColor }}
+                      className="text-[13px] font-bold"
+                      style={{
+                        color: scoreColor,
+                        fontFamily: "var(--font-mono)",
+                      }}
                     >
                       {scoreLabel}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                  <td
+                    className="px-4 py-3 text-[13px]"
+                    style={{ color: "var(--text-muted)" }}
+                  >
                     {category}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                  <td
+                    className="px-4 py-3 text-[13px]"
+                    style={{ color: "var(--text-muted)" }}
+                  >
                     {r.milestone || "—"}
                   </td>
-                  <td className="max-w-xs px-4 py-3 text-sm text-gray-600">
+                  <td
+                    className="max-w-xs px-4 py-3 text-[13px]"
+                    style={{ color: "var(--text-bright)" }}
+                  >
                     {r.feedback ? (
                       <span
                         className={
@@ -449,10 +515,16 @@ function ResponsesTable({ records }: { records: SurveyRecord[] }) {
                         {feedbackTruncated}
                       </span>
                     ) : (
-                      <span className="text-gray-300">—</span>
+                      <span style={{ color: "var(--border)" }}>—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                  <td
+                    className="px-4 py-3 text-[13px] whitespace-nowrap"
+                    style={{
+                      color: "var(--text-muted)",
+                      fontFamily: "var(--font-mono)",
+                    }}
+                  >
                     {formatDate(r.submissionDate)}
                   </td>
                 </tr>
@@ -462,7 +534,8 @@ function ResponsesTable({ records }: { records: SurveyRecord[] }) {
               <tr>
                 <td
                   colSpan={7}
-                  className="px-4 py-8 text-center text-sm text-gray-400"
+                  className="px-4 py-8 text-center text-[13px]"
+                  style={{ color: "var(--text-muted)" }}
                 >
                   No responses in this time period
                 </td>
@@ -481,20 +554,33 @@ function AlertsSection({ alerts }: { alerts: AlertRecord[] }) {
   return (
     <div>
       <h2
-        className="mb-4 text-lg font-bold"
-        style={{ color: "#002330", fontFamily: "var(--font-epilogue)" }}
+        className="mb-4 text-[15px] font-bold"
+        style={{ color: "var(--text)", fontFamily: "var(--font-mono)" }}
       >
         Detractor &amp; Dissatisfied Alerts
-        <span className="ml-2 text-sm font-normal text-gray-500">
+        <span
+          className="ml-2 text-[12px] font-normal"
+          style={{ color: "var(--text-muted)" }}
+        >
           Last 30 days
         </span>
       </h2>
 
       {alerts.length === 0 ? (
-        <div className="rounded-xl border-2 border-dashed border-emerald-200 bg-emerald-50 p-6 text-center">
-          <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
+        <div
+          className="rounded-lg p-6 text-center"
+          style={{
+            backgroundColor: "var(--success-dim)",
+            border: "1px dashed var(--success)",
+          }}
+        >
+          <div
+            className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full"
+            style={{ backgroundColor: "rgba(52, 211, 153, 0.2)" }}
+          >
             <svg
-              className="h-5 w-5 text-emerald-600"
+              className="h-5 w-5"
+              style={{ color: "var(--success)" }}
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={2.5}
@@ -507,7 +593,10 @@ function AlertsSection({ alerts }: { alerts: AlertRecord[] }) {
               />
             </svg>
           </div>
-          <p className="text-sm font-medium text-emerald-700">
+          <p
+            className="text-[13px] font-medium"
+            style={{ color: "var(--success)" }}
+          >
             All clear! No detractors or dissatisfied clients in the last 30
             days.
           </p>
@@ -517,51 +606,82 @@ function AlertsSection({ alerts }: { alerts: AlertRecord[] }) {
           {alerts.map((alert) => (
             <div
               key={alert.id}
-              className="rounded-xl bg-white p-5 shadow-sm"
-              style={{ borderLeft: "4px solid #dc2626" }}
+              className="rounded-lg p-4"
+              style={{
+                backgroundColor: "var(--card)",
+                border: "1px solid var(--border)",
+                borderLeft: "3px solid var(--error)",
+              }}
             >
               <div className="mb-2 flex flex-wrap items-center gap-3">
                 <span
-                  className="text-sm font-bold"
-                  style={{ color: "#002330" }}
+                  className="text-[13px] font-bold"
+                  style={{ color: "var(--text)" }}
                 >
                   {formatClientName(alert.clientName)}
                 </span>
                 <span
-                  className="inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                  className="inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
                   style={{
                     backgroundColor:
-                      alert.surveyType === "NPS" ? "#eff6ff" : "#f0fdf4",
+                      alert.surveyType === "NPS"
+                        ? "var(--accent-dim)"
+                        : "var(--success-dim)",
                     color:
-                      alert.surveyType === "NPS" ? "#1d4ed8" : "#15803d",
+                      alert.surveyType === "NPS"
+                        ? "var(--accent)"
+                        : "var(--success)",
                   }}
                 >
                   {alert.surveyType}
                 </span>
                 <span
-                  className="text-sm font-bold"
-                  style={{ color: "#dc2626" }}
+                  className="text-[13px] font-bold"
+                  style={{
+                    color: "var(--error)",
+                    fontFamily: "var(--font-mono)",
+                  }}
                 >
                   {alert.surveyType === "NPS"
                     ? `${alert.score}/10`
                     : `${alert.score}/5`}
                 </span>
-                <span className="text-xs text-gray-400">
+                <span
+                  className="text-[12px]"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   {alert.category}
                 </span>
                 {alert.milestone && (
-                  <span className="text-xs text-gray-400">
+                  <span
+                    className="text-[12px]"
+                    style={{ color: "var(--text-muted)" }}
+                  >
                     • {alert.milestone}
                   </span>
                 )}
-                <span className="text-xs text-gray-400">
+                <span
+                  className="text-[12px]"
+                  style={{
+                    color: "var(--text-muted)",
+                    fontFamily: "var(--font-mono)",
+                  }}
+                >
                   • {formatDate(alert.submissionDate)}
                 </span>
               </div>
               {alert.feedback ? (
-                <p className="text-sm text-gray-600">{alert.feedback}</p>
+                <p
+                  className="text-[13px]"
+                  style={{ color: "var(--text-bright)" }}
+                >
+                  {alert.feedback}
+                </p>
               ) : (
-                <p className="text-sm italic text-gray-400">
+                <p
+                  className="text-[13px] italic"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   No feedback provided
                 </p>
               )}
@@ -676,7 +796,8 @@ export default function DashboardPage() {
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <svg
-            className="mx-auto h-8 w-8 animate-spin text-gray-400"
+            className="mx-auto h-8 w-8 animate-spin"
+            style={{ color: "var(--text-muted)" }}
             viewBox="0 0 24 24"
             fill="none"
           >
@@ -694,7 +815,12 @@ export default function DashboardPage() {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
             />
           </svg>
-          <p className="mt-3 text-sm text-gray-500">Loading dashboard...</p>
+          <p
+            className="mt-3 text-[13px]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Loading dashboard...
+          </p>
         </div>
       </div>
     );
@@ -703,11 +829,20 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="rounded-xl bg-red-50 px-8 py-6 text-center">
-          <p className="text-sm text-red-600">{error}</p>
+        <div
+          className="rounded-lg px-8 py-6 text-center"
+          style={{
+            backgroundColor: "var(--error-dim)",
+            border: "1px solid var(--error)",
+          }}
+        >
+          <p className="text-[13px]" style={{ color: "var(--error)" }}>
+            {error}
+          </p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-3 text-sm font-medium text-red-700 underline cursor-pointer"
+            className="mt-3 text-[13px] font-medium underline cursor-pointer"
+            style={{ color: "var(--error)" }}
           >
             Retry
           </button>
@@ -723,8 +858,8 @@ export default function DashboardPage() {
       {/* Header row: title + time frame picker */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <h2
-          className="text-lg font-bold"
-          style={{ color: "#002330", fontFamily: "var(--font-epilogue)" }}
+          className="text-[15px] font-bold"
+          style={{ color: "var(--text)", fontFamily: "var(--font-mono)" }}
         >
           Overview
         </h2>

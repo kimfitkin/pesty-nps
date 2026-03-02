@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import { Epilogue, Montserrat } from "next/font/google";
+import { Inter, Space_Mono } from "next/font/google";
 import "./globals.css";
 
-const epilogue = Epilogue({
-  variable: "--font-epilogue",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["700"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
+const spaceMono = Space_Mono({
+  variable: "--font-space-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${epilogue.variable} ${montserrat.variable} antialiased`}
+        className={`${inter.variable} ${spaceMono.variable} antialiased`}
       >
         {children}
       </body>
