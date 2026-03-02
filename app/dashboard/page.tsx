@@ -742,9 +742,9 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch("/api/dashboard/responses");
+        const response = await fetch("/nps/api/dashboard/responses");
         if (response.status === 401) {
-          window.location.href = "/dashboard/login";
+          window.location.href = "/nps/dashboard/login";
           return;
         }
         if (!response.ok) throw new Error("Failed to fetch data");

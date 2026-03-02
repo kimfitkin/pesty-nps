@@ -15,14 +15,14 @@ export default function DashboardLogin() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/dashboard/login", {
+      const response = await fetch("/nps/api/dashboard/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       });
 
       if (response.ok) {
-        router.push("/dashboard");
+        router.push("/nps/dashboard");
         router.refresh();
       } else {
         const data = await response.json();

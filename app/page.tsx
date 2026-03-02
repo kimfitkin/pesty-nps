@@ -193,7 +193,7 @@ function NPSSurvey({ client }: { client: string }) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/submit", {
+      const response = await fetch("/nps/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -347,7 +347,7 @@ function CSATSurvey({
 
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/submit", {
+      const response = await fetch("/nps/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
