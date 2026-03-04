@@ -287,6 +287,83 @@ function SummaryCards({ summary }: { summary: DashboardSummary }) {
   );
 }
 
+// ─── Confirm Delete Modal ────────────────────────────────────────
+
+function ConfirmDeleteModal({
+  record,
+  isDeleting,
+  onConfirm,
+  onCancel,
+}: {
+  record: SurveyRecord;
+  isDeleting: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }}
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-sm rounded-lg p-6"
+        style={{
+          backgroundColor: "var(--card)",
+          border: "1px solid var(--border)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3
+          className="mb-2 text-base font-bold"
+          style={{ color: "var(--text)", fontFamily: "var(--font-mono)" }}
+        >
+          Delete Response
+        </h3>
+        <p className="mb-6 text-[13px]" style={{ color: "var(--text-muted)" }}>
+          Are you sure you want to delete the {record.surveyType} response from{" "}
+          <span style={{ color: "var(--text)" }}>
+            {formatClientName(record.clientName)}
+          </span>
+          ? This action cannot be undone.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            disabled={isDeleting}
+            className="rounded-md px-4 py-2 text-[13px] font-medium cursor-pointer transition-opacity disabled:opacity-50"
+            style={{
+              backgroundColor: "var(--surface)",
+              border: "1px solid var(--border)",
+              color: "var(--text)",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="flex items-center gap-2 rounded-md px-4 py-2 text-[13px] font-medium text-white cursor-pointer transition-opacity disabled:opacity-50"
+            style={{ backgroundColor: "var(--error)" }}
+          >
+            {isDeleting ? (
+              <>
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Deleting...
+              </>
+            ) : (
+              "Delete"
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Sortable Responses Table ───────────────────────────────────
 
 type SortField =
@@ -312,10 +389,18 @@ function getCategory(r: SurveyRecord): string {
   return "—";
 }
 
-function ResponsesTable({ records }: { records: SurveyRecord[] }) {
+function ResponsesTable({
+  records,
+  onDelete,
+}: {
+  records: SurveyRecord[];
+  onDelete: (record: SurveyRecord) => Promise<void>;
+}) {
   const [sortField, setSortField] = useState<SortField>("submissionDate");
   const [sortDir, setSortDir] = useState<SortDirection>("desc");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<SurveyRecord | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   function handleSort(field: SortField) {
     if (sortField === field) {
@@ -389,6 +474,19 @@ function ResponsesTable({ records }: { records: SurveyRecord[] }) {
     );
   }
 
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await onDelete(deleteTarget);
+      setDeleteTarget(null);
+    } catch {
+      alert("Failed to delete response. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   return (
     <div className="mb-8">
       <h2
@@ -397,6 +495,16 @@ function ResponsesTable({ records }: { records: SurveyRecord[] }) {
       >
         Recent Responses
       </h2>
+
+      {deleteTarget && (
+        <ConfirmDeleteModal
+          record={deleteTarget}
+          isDeleting={isDeleting}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
       <div
         className="overflow-x-auto rounded-lg"
         style={{
@@ -404,7 +512,7 @@ function ResponsesTable({ records }: { records: SurveyRecord[] }) {
           border: "1px solid var(--border)",
         }}
       >
-        <table className="w-full min-w-[700px]">
+        <table className="w-full min-w-[750px]">
           <thead
             style={{ borderBottom: "1px solid var(--border)" }}
           >
@@ -421,6 +529,11 @@ function ResponsesTable({ records }: { records: SurveyRecord[] }) {
                 Feedback
               </th>
               <SortHeader field="submissionDate">Date</SortHeader>
+              <th
+                className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wide"
+                style={{ color: "var(--text-muted)" }}
+              >
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -527,13 +640,41 @@ function ResponsesTable({ records }: { records: SurveyRecord[] }) {
                   >
                     {formatDate(r.submissionDate)}
                   </td>
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => setDeleteTarget(r)}
+                      className="rounded p-1.5 transition-colors cursor-pointer"
+                      style={{ color: "var(--text-muted)" }}
+                      title="Delete response"
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.color = "var(--error)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = "var(--text-muted)")
+                      }
+                    >
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                        />
+                      </svg>
+                    </button>
+                  </td>
                 </tr>
               );
             })}
             {sorted.length === 0 && (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="px-4 py-8 text-center text-[13px]"
                   style={{ color: "var(--text-muted)" }}
                 >
@@ -761,6 +902,28 @@ export default function DashboardPage() {
     fetchData();
   }, []);
 
+  // Delete a record from Airtable and update local state
+  async function handleDeleteRecord(record: SurveyRecord) {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/api/dashboard/responses?id=${record.id}`,
+      { method: "DELETE" }
+    );
+
+    if (!response.ok) {
+      throw new Error("Delete failed");
+    }
+
+    // Remove from local state
+    setData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        recentResponses: prev.recentResponses.filter((r) => r.id !== record.id),
+        alerts: prev.alerts.filter((a) => a.id !== record.id),
+      };
+    });
+  }
+
   // Compute filtered data based on time frame
   const filteredData = useMemo(() => {
     if (!data) return null;
@@ -874,7 +1037,7 @@ export default function DashboardPage() {
       </div>
 
       <SummaryCards summary={filteredData.summary} />
-      <ResponsesTable records={filteredData.recentResponses} />
+      <ResponsesTable records={filteredData.recentResponses} onDelete={handleDeleteRecord} />
       <AlertsSection alerts={filteredData.alerts} />
     </>
   );
