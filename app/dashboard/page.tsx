@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import type { DashboardSummary } from "@/app/lib/types";
 import {
   HEADING_STYLE,
@@ -98,10 +99,18 @@ function getOverviewCards(summary: DashboardSummary): SummaryCardData[] {
 
 export default function DashboardPage() {
   const { data, error, isLoading, handleDeleteRecord } = useDashboardData();
+  const router = useRouter();
 
   const [timeFrame, setTimeFrame] = useState<TimeFrame>("this_month");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
+
+  const handleClientClick = useCallback(
+    (clientName: string) => {
+      router.push(`/dashboard/clients?client=${encodeURIComponent(clientName)}`);
+    },
+    [router]
+  );
 
   const filteredData = useMemo(() => {
     if (!data) return null;
@@ -151,6 +160,7 @@ export default function DashboardPage() {
       <ResponsesTable
         records={filteredData.recentResponses}
         onDelete={handleDeleteRecord}
+        onClientClick={handleClientClick}
       />
       <AlertsSection alerts={filteredData.alerts} />
     </>

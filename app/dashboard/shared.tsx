@@ -351,10 +351,12 @@ export function ResponsesTable({
   records,
   onDelete,
   title = "Recent Responses",
+  onClientClick,
 }: {
   records: SurveyRecord[];
   onDelete: (record: SurveyRecord) => Promise<void>;
   title?: string;
+  onClientClick?: (clientName: string) => void;
 }) {
   const [sortField, setSortField] = useState<SortField>("submissionDate");
   const [sortDir, setSortDir] = useState<SortDirection>("desc");
@@ -526,7 +528,23 @@ export function ResponsesTable({
                     className="px-4 py-3 text-[13px] font-medium"
                     style={{ color: "var(--text)" }}
                   >
-                    {formatClientName(r.clientName)}
+                    {onClientClick ? (
+                      <button
+                        onClick={() => onClientClick(r.clientName)}
+                        className="cursor-pointer transition-colors hover:underline"
+                        style={{ color: "var(--accent)" }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.color = "var(--text)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.color = "var(--accent)")
+                        }
+                      >
+                        {formatClientName(r.clientName)}
+                      </button>
+                    ) : (
+                      formatClientName(r.clientName)
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <span

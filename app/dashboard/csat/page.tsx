@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   HEADING_STYLE,
   TimeFramePicker,
@@ -81,10 +82,18 @@ function getCsatCards(
 
 export default function CsatDashboardPage() {
   const { data, error, isLoading, handleDeleteRecord } = useDashboardData();
+  const router = useRouter();
 
   const [timeFrame, setTimeFrame] = useState<TimeFrame>("this_month");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
+
+  const handleClientClick = useCallback(
+    (clientName: string) => {
+      router.push(`/dashboard/clients?client=${encodeURIComponent(clientName)}`);
+    },
+    [router]
+  );
 
   const filteredData = useMemo(() => {
     if (!data) return null;
@@ -141,6 +150,7 @@ export default function CsatDashboardPage() {
         records={filteredData.records}
         onDelete={handleDeleteRecord}
         title="CSAT Responses"
+        onClientClick={handleClientClick}
       />
       <AlertsSection
         alerts={filteredData.alerts}
