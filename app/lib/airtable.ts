@@ -45,7 +45,7 @@ async function fetchAllRecords(): Promise<AirtableRecord[]> {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      next: { revalidate: 60 }, // Cache for 60 seconds
+      cache: "no-store", // Always fetch fresh data
     });
 
     if (!response.ok) {
