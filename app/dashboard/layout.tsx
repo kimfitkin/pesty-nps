@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { COOKIE_NAME } from "@/app/lib/constants";
+import { DashboardNav } from "./nav";
 
 export default async function DashboardLayout({
   children,
@@ -41,45 +42,7 @@ export default async function DashboardLayout({
       </header>
 
       {/* Tab navigation */}
-      <nav
-        style={{
-          backgroundColor: "var(--surface)",
-          borderBottom: "1px solid var(--border)",
-        }}
-      >
-        <div className="mx-auto max-w-[1400px] px-6 sm:px-10">
-          <div className="flex gap-1">
-            <button
-              className="px-3 py-2.5 text-[13px] font-semibold transition-colors rounded-t-md"
-              style={{
-                backgroundColor: "var(--accent-dim)",
-                color: "var(--accent)",
-                borderBottom: "2px solid var(--accent)",
-              }}
-            >
-              Overview
-            </button>
-            {["NPS", "CSAT", "Clients"].map((tab) => (
-              <span
-                key={tab}
-                className="flex items-center gap-1.5 px-3 py-2.5 text-[13px] cursor-not-allowed"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {tab}
-                <span
-                  className="rounded px-1.5 py-0.5 text-[10px] font-medium uppercase"
-                  style={{
-                    backgroundColor: "var(--border)",
-                    color: "var(--text-muted)",
-                  }}
-                >
-                  Soon
-                </span>
-              </span>
-            ))}
-          </div>
-        </div>
-      </nav>
+      <DashboardNav />
 
       {/* Page content */}
       <main className="mx-auto max-w-[1400px] px-6 py-8 sm:px-10">
