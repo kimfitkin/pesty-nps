@@ -9,6 +9,19 @@ const VALID_MILESTONES = [
 
 export async function POST(request: NextRequest) {
   try {
+    // Check for required environment variables
+    if (!process.env.AIRTABLE_TOKEN || !process.env.AIRTABLE_BASE_ID || !process.env.AIRTABLE_SURVEYS_TABLE_ID) {
+      console.error("Missing Airtable environment variables:", {
+        hasToken: !!process.env.AIRTABLE_TOKEN,
+        hasBaseId: !!process.env.AIRTABLE_BASE_ID,
+        hasTableId: !!process.env.AIRTABLE_SURVEYS_TABLE_ID,
+      });
+      return NextResponse.json(
+        { error: "Server configuration error: missing Airtable credentials" },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json();
     const {
       client = "unknown",
