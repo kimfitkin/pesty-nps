@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       const errorText = await response.text();
       console.error("Airtable error:", response.status, errorText);
       return NextResponse.json(
-        { error: "Submission failed" },
+        { error: "Submission failed", details: errorText, airtableStatus: response.status },
         { status: 500 }
       );
     }

@@ -204,7 +204,11 @@ function NPSSurvey({ client }: { client: string }) {
         }),
       });
 
-      if (!response.ok) throw new Error("Submission failed");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Submission error details:", errorData);
+        throw new Error(errorData.details || errorData.error || "Submission failed");
+      }
       setIsSubmitted(true);
     } catch (error) {
       console.error("Submission error:", error);
@@ -360,7 +364,11 @@ function CSATSurvey({
         }),
       });
 
-      if (!response.ok) throw new Error("Submission failed");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Submission error details:", errorData);
+        throw new Error(errorData.details || errorData.error || "Submission failed");
+      }
       setIsSubmitted(true);
     } catch (error) {
       console.error("Submission error:", error);
