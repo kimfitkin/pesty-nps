@@ -7,6 +7,7 @@ const TABS = [
   { label: "Overview", href: "/dashboard" },
   { label: "NPS", href: "/dashboard/nps" },
   { label: "CSAT", href: "/dashboard/csat" },
+  { label: "Clients", href: "/dashboard/clients" },
 ];
 
 export function DashboardNav() {
@@ -58,22 +59,6 @@ export function DashboardNav() {
             );
           })}
 
-          {/* Clients tab — still disabled */}
-          <span
-            className="flex items-center gap-1.5 px-3 py-2.5 text-[13px] cursor-not-allowed"
-            style={{ color: "var(--text-muted)" }}
-          >
-            Clients
-            <span
-              className="rounded px-1.5 py-0.5 text-[10px] font-medium uppercase"
-              style={{
-                backgroundColor: "var(--border)",
-                color: "var(--text-muted)",
-              }}
-            >
-              Soon
-            </span>
-          </span>
         </div>
       </div>
     </nav>
