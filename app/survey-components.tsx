@@ -158,7 +158,7 @@ const MILESTONE_QUESTIONS: Record<
   },
   "Monthly Call": {
     csatQuestion:
-      "How satisfied are you with the clarity of your performance updates?",
+      "How satisfied are you with the clarity of your monthly performance updates?",
     followUpQuestion:
       "How confident are you that we're focused on the right priorities?",
   },
