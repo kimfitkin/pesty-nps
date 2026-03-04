@@ -17,6 +17,8 @@ import {
   type TimeFrame,
   type SummaryCardData,
 } from "./shared";
+import { OverviewNpsChart } from "./overview-nps-chart";
+import { OverviewCsatChart } from "./overview-csat-chart";
 
 // ─── Recompute summary from filtered records ────────────────────
 
@@ -157,6 +159,13 @@ export default function DashboardPage() {
       </div>
 
       <SummaryCards cards={getOverviewCards(filteredData.summary)} />
+
+      {/* Charts */}
+      <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <OverviewNpsChart records={filteredData.recentResponses} />
+        <OverviewCsatChart records={filteredData.recentResponses} />
+      </div>
+
       <ResponsesTable
         records={filteredData.recentResponses}
         onDelete={handleDeleteRecord}
