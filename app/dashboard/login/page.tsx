@@ -15,7 +15,7 @@ export default function DashboardLogin() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/nps/api/dashboard/login", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/api/dashboard/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
