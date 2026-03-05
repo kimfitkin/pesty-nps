@@ -154,12 +154,12 @@ function AddClientModal({
 
     const slugRegex = /^[a-z0-9]+(-[a-z0-9]+)*$/;
     if (!slugRegex.test(slug)) {
-      setError("Slug must be lowercase letters, numbers, and hyphens only");
+      setError("Survey URL ID must be lowercase letters, numbers, and hyphens only");
       return;
     }
 
     if (existingSlugs.has(slug)) {
-      setError("A client with this slug already exists");
+      setError("A client with this URL ID already exists");
       return;
     }
 
@@ -226,7 +226,7 @@ function AddClientModal({
             className="mb-1 block text-[11px] font-medium uppercase tracking-wide"
             style={{ color: "var(--text-muted)" }}
           >
-            URL Slug
+            Survey URL ID
           </label>
           <input
             type="text"
@@ -338,6 +338,7 @@ export function ClientList({
 }) {
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const summaries = useMemo(
     () => computeClientSummaries(records, clients),
@@ -376,19 +377,106 @@ export function ClientList({
           Clients
         </h2>
         <div className="flex items-center gap-3">
-          <input
-            type="text"
-            placeholder="Search clients..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="rounded-md px-3 py-1.5 text-[13px] focus:outline-none"
-            style={{
-              backgroundColor: "var(--card)",
-              border: "1px solid var(--border)",
-              color: "var(--text)",
-              minWidth: "200px",
-            }}
-          />
+          <div className="relative" style={{ minWidth: "220px" }}>
+            <input
+              type="text"
+              placeholder="Search clients..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setDropdownOpen(true);
+              }}
+              onFocus={() => setDropdownOpen(true)}
+              onBlur={() => {
+                // Delay so click on dropdown item registers
+                setTimeout(() => setDropdownOpen(false), 200);
+              }}
+              className="w-full rounded-md px-3 py-1.5 text-[13px] focus:outline-none"
+              style={{
+                backgroundColor: "var(--card)",
+                border: "1px solid var(--border)",
+                color: "var(--text)",
+              }}
+            />
+            {dropdownOpen && summaries.length > 0 && (
+              <div
+                className="absolute left-0 right-0 z-40 mt-1 max-h-60 overflow-y-auto rounded-md py-1"
+                style={{
+                  backgroundColor: "var(--card)",
+                  border: "1px solid var(--border)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                }}
+              >
+                {summaries
+                  .filter((s) => {
+                    if (!search.trim()) return true;
+                    const q = search.toLowerCase();
+                    return (
+                      s.displayName.toLowerCase().includes(q) ||
+                      s.clientName.toLowerCase().includes(q) ||
+                      (s.accountManager &&
+                        s.accountManager.toLowerCase().includes(q))
+                    );
+                  })
+                  .map((s) => (
+                    <button
+                      key={s.clientName}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setSearch("");
+                        setDropdownOpen(false);
+                        onSelectClient(s.clientName);
+                      }}
+                      className="flex w-full items-center justify-between px-3 py-2 text-left text-[13px] transition-colors cursor-pointer"
+                      style={{ color: "var(--text)" }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor =
+                          "var(--surface)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.backgroundColor = "transparent")
+                      }
+                    >
+                      <div>
+                        <span className="font-medium">{s.displayName}</span>
+                        {s.accountManager && (
+                          <span
+                            className="ml-2 text-[11px]"
+                            style={{ color: "var(--text-muted)" }}
+                          >
+                            AM: {s.accountManager}
+                          </span>
+                        )}
+                      </div>
+                      <span
+                        className="text-[11px]"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        {s.totalSurveys} survey
+                        {s.totalSurveys !== 1 ? "s" : ""}
+                      </span>
+                    </button>
+                  ))}
+                {summaries.filter((s) => {
+                  if (!search.trim()) return true;
+                  const q = search.toLowerCase();
+                  return (
+                    s.displayName.toLowerCase().includes(q) ||
+                    s.clientName.toLowerCase().includes(q) ||
+                    (s.accountManager &&
+                      s.accountManager.toLowerCase().includes(q))
+                  );
+                }).length === 0 && (
+                  <p
+                    className="px-3 py-2 text-[12px]"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    No clients match
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
           <button
             onClick={() => setShowAddModal(true)}
             className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium text-white cursor-pointer transition-opacity whitespace-nowrap"
