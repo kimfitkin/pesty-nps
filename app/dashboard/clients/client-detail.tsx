@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import type { SurveyRecord, AlertRecord } from "@/app/lib/types";
+import type { SurveyRecord, AlertRecord, ClientRecord } from "@/app/lib/types";
 import {
   formatClientName,
   formatDate,
@@ -89,14 +89,21 @@ export function ClientDetail({
   clientName,
   records,
   alerts,
+  clients,
   onBack,
   onDelete,
+  onUpdateClient,
 }: {
   clientName: string;
   records: SurveyRecord[];
   alerts: AlertRecord[];
+  clients: ClientRecord[];
   onBack: () => void;
   onDelete: (record: SurveyRecord) => Promise<void>;
+  onUpdateClient: (
+    id: string,
+    fields: { displayName?: string; accountManager?: string }
+  ) => Promise<void>;
 }) {
   const clientRecords = useMemo(
     () => records.filter((r) => r.clientName === clientName),
@@ -106,6 +113,11 @@ export function ClientDetail({
   const clientAlerts = useMemo(
     () => alerts.filter((a) => a.clientName === clientName),
     [alerts, clientName]
+  );
+
+  const clientRecord = useMemo(
+    () => clients.find((c) => c.clientSlug === clientName) || null,
+    [clients, clientName]
   );
 
   const cards = useMemo(() => getClientCards(clientRecords), [clientRecords]);
@@ -143,9 +155,19 @@ export function ClientDetail({
             />
           </svg>
         </button>
-        <h2 className="text-[15px] font-bold" style={HEADING_STYLE}>
-          {formatClientName(clientName)}
-        </h2>
+        <div>
+          <h2 className="text-[15px] font-bold" style={HEADING_STYLE}>
+            {clientRecord?.displayName || formatClientName(clientName)}
+          </h2>
+          {clientRecord?.accountManager && (
+            <p
+              className="text-[12px]"
+              style={{ color: "var(--text-muted)" }}
+            >
+              Account Manager: {clientRecord.accountManager}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Summary cards */}

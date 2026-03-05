@@ -7,7 +7,14 @@ import { ClientList } from "./client-list";
 import { ClientDetail } from "./client-detail";
 
 export default function ClientsDashboardPage() {
-  const { data, error, isLoading, handleDeleteRecord } = useDashboardData();
+  const {
+    data,
+    error,
+    isLoading,
+    handleDeleteRecord,
+    handleCreateClient,
+    handleUpdateClient,
+  } = useDashboardData();
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -36,8 +43,10 @@ export default function ClientsDashboardPage() {
         clientName={selectedClient}
         records={data.recentResponses}
         alerts={data.alerts}
+        clients={data.clients}
         onBack={handleBack}
         onDelete={handleDeleteRecord}
+        onUpdateClient={handleUpdateClient}
       />
     );
   }
@@ -45,7 +54,9 @@ export default function ClientsDashboardPage() {
   return (
     <ClientList
       records={data.recentResponses}
+      clients={data.clients}
       onSelectClient={handleSelectClient}
+      onCreateClient={handleCreateClient}
     />
   );
 }

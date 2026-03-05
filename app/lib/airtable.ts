@@ -1,5 +1,6 @@
 import {
   SurveyRecord,
+  ClientRecord,
   DashboardData,
   DashboardSummary,
   AlertRecord,
@@ -83,6 +84,140 @@ function transformRecord(record: AirtableRecord): SurveyRecord {
   };
 }
 
+// ─── Clients table ──────────────────────────────────────────────
+
+/**
+ * Fetch all client records from Airtable Clients table (handles pagination).
+ * Returns [] gracefully if AIRTABLE_CLIENTS_TABLE_ID is not set.
+ */
+async function fetchAllClientRecords(): Promise<AirtableRecord[]> {
+  const baseId = process.env.AIRTABLE_BASE_ID;
+  const tableId = process.env.AIRTABLE_CLIENTS_TABLE_ID;
+  const token = process.env.AIRTABLE_TOKEN;
+
+  if (!baseId || !tableId || !token) {
+    return []; // Gracefully return empty if not configured
+  }
+
+  const allRecords: AirtableRecord[] = [];
+  let offset: string | undefined;
+
+  do {
+    const url = new URL(
+      `https://api.airtable.com/v0/${baseId}/${tableId}`
+    );
+    if (offset) url.searchParams.set("offset", offset);
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Airtable clients fetch error:", response.status, errorText);
+      return []; // Return empty on error rather than crashing
+    }
+
+    const data: AirtableResponse = await response.json();
+    allRecords.push(...data.records);
+    offset = data.offset;
+  } while (offset);
+
+  return allRecords;
+}
+
+function transformClientRecord(record: AirtableRecord): ClientRecord {
+  const f = record.fields;
+  return {
+    id: record.id,
+    clientSlug: (f["Client Slug"] as string) || "",
+    displayName: (f["Display Name"] as string) || "",
+    accountManager: (f["Account Manager"] as string) || "",
+  };
+}
+
+export async function createClientRecord(fields: {
+  clientSlug: string;
+  displayName: string;
+  accountManager: string;
+}): Promise<ClientRecord> {
+  const baseId = process.env.AIRTABLE_BASE_ID;
+  const tableId = process.env.AIRTABLE_CLIENTS_TABLE_ID;
+  const token = process.env.AIRTABLE_TOKEN;
+
+  if (!baseId || !tableId || !token) {
+    throw new Error("Missing Airtable Clients table configuration");
+  }
+
+  const response = await fetch(
+    `https://api.airtable.com/v0/${baseId}/${tableId}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        records: [
+          {
+            fields: {
+              "Client Slug": fields.clientSlug,
+              "Display Name": fields.displayName,
+              "Account Manager": fields.accountManager,
+            },
+          },
+        ],
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to create client: ${response.status} ${errorText}`);
+  }
+
+  const data = await response.json();
+  return transformClientRecord(data.records[0]);
+}
+
+export async function updateClientRecord(
+  recordId: string,
+  fields: { displayName?: string; accountManager?: string }
+): Promise<void> {
+  const baseId = process.env.AIRTABLE_BASE_ID;
+  const tableId = process.env.AIRTABLE_CLIENTS_TABLE_ID;
+  const token = process.env.AIRTABLE_TOKEN;
+
+  if (!baseId || !tableId || !token) {
+    throw new Error("Missing Airtable Clients table configuration");
+  }
+
+  const airtableFields: Record<string, string> = {};
+  if (fields.displayName !== undefined)
+    airtableFields["Display Name"] = fields.displayName;
+  if (fields.accountManager !== undefined)
+    airtableFields["Account Manager"] = fields.accountManager;
+
+  const response = await fetch(
+    `https://api.airtable.com/v0/${baseId}/${tableId}/${recordId}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ fields: airtableFields }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to update client: ${response.status}`);
+  }
+}
+
 // ─── Metric computation ─────────────────────────────────────────
 
 function computeSummary(records: SurveyRecord[]): DashboardSummary {
@@ -157,12 +292,17 @@ function computeAlerts(records: SurveyRecord[]): AlertRecord[] {
 // ─── Main export ────────────────────────────────────────────────
 
 export async function getDashboardData(): Promise<DashboardData> {
-  const rawRecords = await fetchAllRecords();
+  const [rawRecords, rawClients] = await Promise.all([
+    fetchAllRecords(),
+    fetchAllClientRecords(),
+  ]);
+
   const records = rawRecords.map(transformRecord);
+  const clients = rawClients.map(transformClientRecord);
 
   const summary = computeSummary(records);
   const recentResponses = records; // Return all records; client-side filters by time frame
   const alerts = computeAlerts(records);
 
-  return { summary, recentResponses, alerts };
+  return { summary, recentResponses, alerts, clients };
 }

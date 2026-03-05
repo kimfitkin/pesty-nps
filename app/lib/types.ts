@@ -31,8 +31,16 @@ export interface AlertRecord {
   submissionDate: string;
 }
 
+export interface ClientRecord {
+  id: string;
+  clientSlug: string;
+  displayName: string;
+  accountManager: string;
+}
+
 export interface DashboardData {
   summary: DashboardSummary;
   recentResponses: SurveyRecord[];
   alerts: AlertRecord[];
+  clients: ClientRecord[];
 }

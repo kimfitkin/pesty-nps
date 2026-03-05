@@ -876,7 +876,7 @@ export function ErrorState({ error }: { error: string }) {
 // ─── Data fetching hook ─────────────────────────────────────────
 
 import { useEffect } from "react";
-import type { DashboardData } from "@/app/lib/types";
+import type { DashboardData, ClientRecord } from "@/app/lib/types";
 
 export function useDashboardData() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -927,5 +927,67 @@ export function useDashboardData() {
     });
   }
 
-  return { data, error, isLoading, handleDeleteRecord };
+  async function handleCreateClient(client: {
+    clientSlug: string;
+    displayName: string;
+    accountManager: string;
+  }): Promise<ClientRecord> {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/api/dashboard/clients`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(client),
+      }
+    );
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || "Failed to create client");
+    }
+
+    const newClient: ClientRecord = await response.json();
+
+    setData((prev) => {
+      if (!prev) return prev;
+      return { ...prev, clients: [...prev.clients, newClient] };
+    });
+
+    return newClient;
+  }
+
+  async function handleUpdateClient(
+    id: string,
+    fields: { displayName?: string; accountManager?: string }
+  ) {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/api/dashboard/clients`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...fields }),
+      }
+    );
+
+    if (!response.ok) throw new Error("Update failed");
+
+    setData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        clients: prev.clients.map((c) =>
+          c.id === id ? { ...c, ...fields } : c
+        ),
+      };
+    });
+  }
+
+  return {
+    data,
+    error,
+    isLoading,
+    handleDeleteRecord,
+    handleCreateClient,
+    handleUpdateClient,
+  };
 }
