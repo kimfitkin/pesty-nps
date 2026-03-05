@@ -38,10 +38,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(record);
   } catch (error) {
     console.error("Client create error:", error);
-    return NextResponse.json(
-      { error: "Failed to create client" },
-      { status: 500 }
-    );
+    const message =
+      error instanceof Error ? error.message : "Failed to create client";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -62,9 +61,8 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Client update error:", error);
-    return NextResponse.json(
-      { error: "Failed to update client" },
-      { status: 500 }
-    );
+    const message =
+      error instanceof Error ? error.message : "Failed to update client";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
