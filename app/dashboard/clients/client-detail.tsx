@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { SurveyRecord, AlertRecord, ClientRecord } from "@/app/lib/types";
 import {
   formatClientName,
@@ -83,6 +83,124 @@ function getClientCards(records: SurveyRecord[]): SummaryCardData[] {
       color: "var(--text)",
     },
   ];
+}
+
+// ─── Survey Links ────────────────────────────────────────────────
+
+const CSAT_MILESTONES = [
+  { slug: "onboarding", label: "Onboarding" },
+  { slug: "website-launch", label: "Website Launch" },
+  { slug: "first-90-days", label: "First 90 Days" },
+  { slug: "monthly-call", label: "Monthly Call" },
+];
+
+function CopyButton({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="flex-shrink-0 rounded px-2 py-1 text-[11px] font-medium cursor-pointer transition-colors"
+      style={{
+        backgroundColor: copied ? "var(--success-dim)" : "var(--surface)",
+        border: `1px solid ${copied ? "var(--success)" : "var(--border)"}`,
+        color: copied ? "var(--success)" : "var(--text-muted)",
+      }}
+    >
+      {copied ? "Copied!" : "Copy"}
+    </button>
+  );
+}
+
+function SurveyLinks({ clientSlug }: { clientSlug: string }) {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+  const baseUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}${basePath}`
+      : basePath;
+
+  const npsUrl = `${baseUrl}/nps-${clientSlug}`;
+  const csatUrls = CSAT_MILESTONES.map((m) => ({
+    label: m.label,
+    url: `${baseUrl}/csat-${m.slug}-${clientSlug}`,
+  }));
+
+  return (
+    <div
+      className="mb-8 rounded-lg p-5"
+      style={{
+        backgroundColor: "var(--card)",
+        border: "1px solid var(--border)",
+      }}
+    >
+      <h3
+        className="mb-4 text-[13px] font-bold"
+        style={{ color: "var(--text)", fontFamily: "var(--font-mono)" }}
+      >
+        Survey Links
+      </h3>
+
+      {/* NPS */}
+      <div className="mb-3">
+        <p
+          className="mb-1.5 text-[11px] font-medium uppercase tracking-wide"
+          style={{ color: "var(--text-muted)" }}
+        >
+          NPS Survey
+        </p>
+        <div className="flex items-center gap-2">
+          <code
+            className="min-w-0 flex-1 truncate rounded px-2.5 py-1.5 text-[12px]"
+            style={{
+              backgroundColor: "var(--surface)",
+              color: "var(--accent)",
+              border: "1px solid var(--border)",
+            }}
+          >
+            {npsUrl}
+          </code>
+          <CopyButton url={npsUrl} />
+        </div>
+      </div>
+
+      {/* CSAT milestones */}
+      <p
+        className="mb-1.5 text-[11px] font-medium uppercase tracking-wide"
+        style={{ color: "var(--text-muted)" }}
+      >
+        CSAT Surveys
+      </p>
+      <div className="space-y-2">
+        {csatUrls.map((item) => (
+          <div key={item.label} className="flex items-center gap-2">
+            <span
+              className="w-28 flex-shrink-0 text-[12px]"
+              style={{ color: "var(--text-muted)" }}
+            >
+              {item.label}
+            </span>
+            <code
+              className="min-w-0 flex-1 truncate rounded px-2.5 py-1.5 text-[12px]"
+              style={{
+                backgroundColor: "var(--surface)",
+                color: "var(--accent)",
+                border: "1px solid var(--border)",
+              }}
+            >
+              {item.url}
+            </code>
+            <CopyButton url={item.url} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export function ClientDetail({
@@ -169,6 +287,9 @@ export function ClientDetail({
           )}
         </div>
       </div>
+
+      {/* Survey Links */}
+      <SurveyLinks clientSlug={clientName} />
 
       {/* Summary cards */}
       <SummaryCards cards={cards} />
