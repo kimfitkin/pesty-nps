@@ -157,36 +157,48 @@ function SurveyLinks({ clientSlug }: { clientSlug: string }) {
       </button>
 
       {expanded && (
-        <div className="mt-3 space-y-1.5">
+        <div
+          className="mt-3 rounded-lg p-4 space-y-2"
+          style={{
+            backgroundColor: "var(--card)",
+            border: "1px solid var(--border)",
+          }}
+        >
           <div className="flex items-center gap-2">
             <span
-              className="w-28 flex-shrink-0 text-[11px]"
+              className="w-28 flex-shrink-0 text-[11px] font-medium"
               style={{ color: "var(--text-muted)" }}
             >
               NPS
             </span>
-            <code
-              className="min-w-0 flex-1 truncate text-[11px]"
-              style={{ color: "var(--text-muted)" }}
+            <a
+              href={npsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="min-w-0 flex-1 truncate text-[11px] hover:underline"
+              style={{ color: "var(--accent)" }}
             >
               {npsUrl}
-            </code>
+            </a>
             <CopyButton url={npsUrl} />
           </div>
           {csatUrls.map((item) => (
             <div key={item.label} className="flex items-center gap-2">
               <span
-                className="w-28 flex-shrink-0 text-[11px]"
+                className="w-28 flex-shrink-0 text-[11px] font-medium"
                 style={{ color: "var(--text-muted)" }}
               >
                 CSAT — {item.label}
               </span>
-              <code
-                className="min-w-0 flex-1 truncate text-[11px]"
-                style={{ color: "var(--text-muted)" }}
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-w-0 flex-1 truncate text-[11px] hover:underline"
+                style={{ color: "var(--accent)" }}
               >
                 {item.url}
-              </code>
+              </a>
               <CopyButton url={item.url} />
             </div>
           ))}
