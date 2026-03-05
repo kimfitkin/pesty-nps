@@ -218,6 +218,32 @@ export async function updateClientRecord(
   }
 }
 
+export async function deleteClientRecord(recordId: string): Promise<void> {
+  const baseId = process.env.AIRTABLE_BASE_ID;
+  const tableId = process.env.AIRTABLE_CLIENTS_TABLE_ID;
+  const token = process.env.AIRTABLE_TOKEN;
+
+  if (!baseId || !tableId || !token) {
+    throw new Error("Missing Airtable Clients table configuration");
+  }
+
+  const response = await fetch(
+    `https://api.airtable.com/v0/${baseId}/${tableId}/${recordId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Airtable client delete error:", response.status, errorText);
+    throw new Error(`Failed to delete client: ${response.status}`);
+  }
+}
+
 // ─── Metric computation ─────────────────────────────────────────
 
 function computeSummary(records: SurveyRecord[]): DashboardSummary {

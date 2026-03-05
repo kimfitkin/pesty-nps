@@ -982,6 +982,26 @@ export function useDashboardData() {
     });
   }
 
+  async function handleDeleteClient(id: string) {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/api/dashboard/clients?id=${encodeURIComponent(id)}`,
+      { method: "DELETE" }
+    );
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || "Failed to delete client");
+    }
+
+    setData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        clients: prev.clients.filter((c) => c.id !== id),
+      };
+    });
+  }
+
   return {
     data,
     error,
@@ -989,5 +1009,6 @@ export function useDashboardData() {
     handleDeleteRecord,
     handleCreateClient,
     handleUpdateClient,
+    handleDeleteClient,
   };
 }

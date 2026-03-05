@@ -14,6 +14,7 @@ export default function ClientsDashboardPage() {
     handleDeleteRecord,
     handleCreateClient,
     handleUpdateClient,
+    handleDeleteClient,
   } = useDashboardData();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -57,6 +58,7 @@ export default function ClientsDashboardPage() {
       clients={data.clients}
       onSelectClient={handleSelectClient}
       onCreateClient={handleCreateClient}
+      onDeleteClient={handleDeleteClient}
     />
   );
 }

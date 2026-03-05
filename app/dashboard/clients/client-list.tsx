@@ -326,6 +326,7 @@ export function ClientList({
   clients,
   onSelectClient,
   onCreateClient,
+  onDeleteClient,
 }: {
   records: SurveyRecord[];
   clients: ClientRecord[];
@@ -335,10 +336,13 @@ export function ClientList({
     displayName: string;
     accountManager: string;
   }) => Promise<ClientRecord>;
+  onDeleteClient: (id: string) => Promise<void>;
 }) {
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<ClientSummary | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const summaries = useMemo(
     () => computeClientSummaries(records, clients),
@@ -368,6 +372,19 @@ export function ClientList({
   }) {
     await onCreateClient(data);
     setShowAddModal(false);
+  }
+
+  async function handleDeleteClient() {
+    if (!confirmDelete?.airtableClientId) return;
+    setIsDeleting(true);
+    try {
+      await onDeleteClient(confirmDelete.airtableClientId);
+      setConfirmDelete(null);
+    } catch {
+      // keep modal open on error
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   return (
@@ -508,6 +525,60 @@ export function ClientList({
         />
       )}
 
+      {confirmDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }}
+          onClick={() => !isDeleting && setConfirmDelete(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-lg p-6"
+            style={{
+              backgroundColor: "var(--card)",
+              border: "1px solid var(--border)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              className="mb-2 text-base font-bold"
+              style={{ color: "var(--text)", fontFamily: "var(--font-mono)" }}
+            >
+              Remove Client
+            </h3>
+            <p className="mb-4 text-[13px]" style={{ color: "var(--text-muted)" }}>
+              Are you sure you want to remove{" "}
+              <strong style={{ color: "var(--text)" }}>
+                {confirmDelete.displayName}
+              </strong>
+              ? This removes the client record from the Clients table. Survey
+              responses will not be deleted.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                disabled={isDeleting}
+                className="rounded-md px-4 py-2 text-[13px] font-medium cursor-pointer transition-opacity disabled:opacity-50"
+                style={{
+                  backgroundColor: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  color: "var(--text)",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteClient}
+                disabled={isDeleting}
+                className="rounded-md px-4 py-2 text-[13px] font-medium text-white cursor-pointer transition-opacity disabled:opacity-50"
+                style={{ backgroundColor: "var(--error)" }}
+              >
+                {isDeleting ? "Removing..." : "Remove"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {filtered.length === 0 ? (
         <div
           className="rounded-lg p-8 text-center"
@@ -525,14 +596,14 @@ export function ClientList({
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((client) => (
-            <button
+            <div
               key={client.clientName}
-              onClick={() => onSelectClient(client.clientName)}
               className="cursor-pointer rounded-lg p-5 text-left transition-colors"
               style={{
                 backgroundColor: "var(--card)",
                 border: "1px solid var(--border)",
               }}
+              onClick={() => onSelectClient(client.clientName)}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.backgroundColor = "var(--surface)")
               }
@@ -547,20 +618,53 @@ export function ClientList({
                 >
                   {client.displayName}
                 </h3>
-                <svg
-                  className="h-4 w-4 flex-shrink-0"
-                  style={{ color: "var(--text-muted)" }}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                  />
-                </svg>
+                <div className="flex items-center gap-1">
+                  {client.airtableClientId && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmDelete(client);
+                      }}
+                      className="flex h-6 w-6 items-center justify-center rounded transition-colors cursor-pointer"
+                      style={{ color: "var(--text-muted)" }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.color = "var(--error)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = "var(--text-muted)")
+                      }
+                      title="Remove client"
+                    >
+                      <svg
+                        className="h-3.5 w-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                  <svg
+                    className="h-4 w-4 flex-shrink-0"
+                    style={{ color: "var(--text-muted)" }}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                    />
+                  </svg>
+                </div>
               </div>
 
               {client.accountManager && (
@@ -642,7 +746,7 @@ export function ClientList({
                   No surveys yet
                 </p>
               )}
-            </button>
+            </div>
           ))}
         </div>
       )}
