@@ -119,6 +119,7 @@ function CopyButton({ url }: { url: string }) {
 }
 
 function SurveyLinks({ clientSlug }: { clientSlug: string }) {
+  const [expanded, setExpanded] = useState(false);
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
   const baseUrl =
     typeof window !== "undefined"
@@ -132,73 +133,65 @@ function SurveyLinks({ clientSlug }: { clientSlug: string }) {
   }));
 
   return (
-    <div
-      className="mb-8 rounded-lg p-5"
-      style={{
-        backgroundColor: "var(--card)",
-        border: "1px solid var(--border)",
-      }}
-    >
-      <h3
-        className="mb-4 text-[13px] font-bold"
-        style={{ color: "var(--text)", fontFamily: "var(--font-mono)" }}
-      >
-        Survey Links
-      </h3>
-
-      {/* NPS */}
-      <div className="mb-3">
-        <p
-          className="mb-1.5 text-[11px] font-medium uppercase tracking-wide"
-          style={{ color: "var(--text-muted)" }}
-        >
-          NPS Survey
-        </p>
-        <div className="flex items-center gap-2">
-          <code
-            className="min-w-0 flex-1 truncate rounded px-2.5 py-1.5 text-[12px]"
-            style={{
-              backgroundColor: "var(--surface)",
-              color: "var(--accent)",
-              border: "1px solid var(--border)",
-            }}
-          >
-            {npsUrl}
-          </code>
-          <CopyButton url={npsUrl} />
-        </div>
-      </div>
-
-      {/* CSAT milestones */}
-      <p
-        className="mb-1.5 text-[11px] font-medium uppercase tracking-wide"
+    <div className="mt-10">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-2 cursor-pointer text-[12px]"
         style={{ color: "var(--text-muted)" }}
       >
-        CSAT Surveys
-      </p>
-      <div className="space-y-2">
-        {csatUrls.map((item) => (
-          <div key={item.label} className="flex items-center gap-2">
+        <svg
+          className="h-3.5 w-3.5 transition-transform"
+          style={{ transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M8.25 4.5l7.5 7.5-7.5 7.5"
+          />
+        </svg>
+        Survey Links
+      </button>
+
+      {expanded && (
+        <div className="mt-3 space-y-1.5">
+          <div className="flex items-center gap-2">
             <span
-              className="w-28 flex-shrink-0 text-[12px]"
+              className="w-28 flex-shrink-0 text-[11px]"
               style={{ color: "var(--text-muted)" }}
             >
-              {item.label}
+              NPS
             </span>
             <code
-              className="min-w-0 flex-1 truncate rounded px-2.5 py-1.5 text-[12px]"
-              style={{
-                backgroundColor: "var(--surface)",
-                color: "var(--accent)",
-                border: "1px solid var(--border)",
-              }}
+              className="min-w-0 flex-1 truncate text-[11px]"
+              style={{ color: "var(--text-muted)" }}
             >
-              {item.url}
+              {npsUrl}
             </code>
-            <CopyButton url={item.url} />
+            <CopyButton url={npsUrl} />
           </div>
-        ))}
-      </div>
+          {csatUrls.map((item) => (
+            <div key={item.label} className="flex items-center gap-2">
+              <span
+                className="w-28 flex-shrink-0 text-[11px]"
+                style={{ color: "var(--text-muted)" }}
+              >
+                CSAT — {item.label}
+              </span>
+              <code
+                className="min-w-0 flex-1 truncate text-[11px]"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {item.url}
+              </code>
+              <CopyButton url={item.url} />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -288,9 +281,6 @@ export function ClientDetail({
         </div>
       </div>
 
-      {/* Survey Links */}
-      <SurveyLinks clientSlug={clientName} />
-
       {/* Summary cards */}
       <SummaryCards cards={cards} />
 
@@ -313,6 +303,9 @@ export function ClientDetail({
         title="Alerts"
         emptyMessage="No detractor or dissatisfied alerts for this client."
       />
+
+      {/* Survey Links — tucked at bottom */}
+      <SurveyLinks clientSlug={clientName} />
     </>
   );
 }
