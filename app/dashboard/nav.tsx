@@ -8,6 +8,7 @@ const TABS = [
   { label: "NPS", href: "/dashboard/nps" },
   { label: "CSAT", href: "/dashboard/csat" },
   { label: "Clients", href: "/dashboard/clients" },
+  { label: "Leaderboard", href: "/dashboard/leaderboard" },
 ];
 
 export function DashboardNav() {
